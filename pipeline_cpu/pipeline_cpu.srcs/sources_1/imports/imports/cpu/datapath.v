@@ -89,6 +89,7 @@ module datapath (
 		debug_data = debug_addr[5] ? debug_data_signal : debug_data_reg;
 	`endif
 	
+	// IF
 	assign
 		inst_addr_next = inst_addr + 4;
 	
@@ -107,6 +108,7 @@ module datapath (
 		end
 	end
 	
+	// ID
 	assign
 		inst_data_ctrl = inst_data,
 		addr_rs = inst_data[25:21],
@@ -141,6 +143,7 @@ module datapath (
 	assign
 		rs_rt_equal = (data_rs == data_rt);
 	
+	// EXE
 	always @(*) begin
 		opa = data_rs;
 		opb = data_rt;
@@ -164,12 +167,14 @@ module datapath (
 		.result(alu_out)
 		);
 	
+	// MEM
 	assign
 		mem_ren = mem_ren_ctrl & cpu_en & ~cpu_rst,
 		mem_wen = mem_wen_ctrl & cpu_en & ~cpu_rst,
 		mem_addr = alu_out,
 		mem_dout = data_rt;
 	
+	// WB
 	always @(*) begin
 		regw_data = alu_out;
 		case (wb_data_src_ctrl)
