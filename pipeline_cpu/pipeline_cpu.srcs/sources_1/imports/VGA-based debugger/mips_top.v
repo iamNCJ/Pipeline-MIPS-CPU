@@ -94,7 +94,7 @@ module mips_top (
 	wire [6:0] debug_addr;
 	wire [31:0] debug_data;
 	
-	mips MIPS (
+	mips_core MIPS (
 		`ifdef DEBUG
 		.debug_en(SW[0]),
 		.debug_step(btn_step),

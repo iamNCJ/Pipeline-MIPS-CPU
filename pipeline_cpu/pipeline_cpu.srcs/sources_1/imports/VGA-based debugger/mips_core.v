@@ -2,12 +2,9 @@
 
 
 /**
- * MIPS 5-stage pipeline CPU Core, including data path and co-processors.
- * Author: Zhao, Hongyu  <power_zhy@foxmail.com>
+ * MIPS 5-stage pipeline CPU Core
  */
 module mips_core (
-	input wire clk,  // main clock
-	input wire rst,  // synchronous reset
 	// debug
 	`ifdef DEBUG
 	input wire debug_en,  // debug enable
@@ -15,131 +12,127 @@ module mips_core (
 	input wire [6:0] debug_addr,  // debug address
 	output wire [31:0] debug_data,  // debug data
 	`endif
-	// instruction interfaces
-	output wire inst_ren,  // instruction read enable signal
-	output wire [31:0] inst_addr,  // address of instruction needed
-	input wire [31:0] inst_data,  // instruction fetched
-	// memory interfaces
-	output wire mem_ren,  // memory read enable signal
-	output wire mem_wen,  // memory write enable signal
-	output wire [31:0] mem_addr,  // address of memory
-	output wire [31:0] mem_dout,  // data writing to memory
-	input wire [31:0] mem_din  // data read from memory
+	input wire clk,  // main clock
+	input wire rst,  // synchronous reset
+	input wire interrupter  // interrupt source, for future use
 	);
 	
-	// control signals
-	wire [31:0] inst_data_ctrl;
+	`include "mips_define.vh"
+		
+	// debug
+	`ifdef DEBUG
+	wire [31:0] debug_data_reg;
+	reg [31:0] debug_data_signal;
+	wire inst_ren;
+	wire [31:0] inst_addr;
+
 	
-	wire [2:0] pc_src_ctrl;
-	wire imm_ext_ctrl;
-	wire [1:0] exe_a_src_ctrl, exe_b_src_ctrl;
-	wire [3:0] exe_alu_oper_ctrl;
-	wire mem_ren_ctrl;
-	wire mem_wen_ctrl;
-	wire [1:0] wb_addr_src_ctrl;
-	wire wb_data_src_ctrl;
-	wire wb_wen_ctrl;
+	always @(posedge clk) begin
+		case (debug_addr[4:0])
+			0: debug_data_signal <= inst_addr;
+			1: debug_data_signal <= inst_data;
+			2: debug_data_signal <= inst_addr_id;
+			3: debug_data_signal <= inst_data_id;
+			4: debug_data_signal <= inst_addr_exe;
+			5: debug_data_signal <= inst_data_exe;
+			6: debug_data_signal <= inst_addr_mem;
+			7: debug_data_signal <= inst_data_mem;
+			8: debug_data_signal <= {27'b0, addr_rs};
+			9: debug_data_signal <= data_rs;
+			10: debug_data_signal <= {27'b0, addr_rt};
+			11: debug_data_signal <= data_rt;
+			12: debug_data_signal <= data_imm;
+			13: debug_data_signal <= opa_exe;
+			14: debug_data_signal <= opb_exe;
+			15: debug_data_signal <= alu_out_exe;
+			16: debug_data_signal <= 0;
+			17: debug_data_signal <= 0;
+			18: debug_data_signal <= {19'b0, inst_ren, 7'b0, mem_ren, 3'b0, mem_wen};
+			19: debug_data_signal <= mem_addr;
+			20: debug_data_signal <= mem_din;
+			21: debug_data_signal <= mem_dout;
+			22: debug_data_signal <= {27'b0, regw_addr_wb};
+			23: debug_data_signal <= regw_data_wb;
+			default: debug_data_signal <= 32'hFFFF_FFFF;
+		endcase
+	end
 	
-	wire is_branch_exe, is_branch_mem;
-	wire [4:0] regw_addr_exe, regw_addr_mem;
-	wire wb_wen_exe, wb_wen_mem;
+	assign debug_data = debug_addr[5] ? debug_data_signal : debug_data_reg;
 	
-	wire if_rst, if_en, if_valid;
-	wire id_rst, id_en, id_valid;
-	wire exe_rst, exe_en, exe_valid;
-	wire mem_rst, mem_en, mem_valid;
-	wire wb_rst, wb_en, wb_valid;
+	reg debug_step_prev;
 	
-	// controller
-	controller CONTROLLER (
-		.clk(clk),
-		.rst(rst),
+	always @(posedge clk) begin
+		debug_step_prev <= debug_step;
+	end
+	`endif
+	
+	// pipeline
+	reg if_rst, id_rst, exe_rst, mem_rst, wb_rst;  // stage reset signal
+	reg if_en, id_en, exe_en, mem_en, wb_en;  // stage enable signal
+	wire if_valid, id_valid, exe_valid, mem_valid, wb_valid;  // stage valid flag
+	
+	always @(*) begin
+		if_rst = 0;
+		if_en = 1;
+		id_rst = 0;
+		id_en = 1;
+		exe_rst = 0;
+		exe_en = 1;
+		mem_rst = 0;
+		mem_en = 1;
+		wb_rst = 0;
+		wb_en = 1;
+		if (rst) begin
+			if_rst = 1;
+			id_rst = 1;
+			exe_rst = 1;
+			mem_rst = 1;
+			wb_rst = 1;
+		end
 		`ifdef DEBUG
-		.debug_en(debug_en),
-		.debug_step(debug_step),
+		// suspend and step execution
+		else if ((debug_en) && ~(~debug_step_prev && debug_step)) begin
+			if_en = 0;
+			id_en = 0;
+			exe_en = 0;
+			mem_en = 0;
+			wb_en = 0;
+		end
 		`endif
-		.inst(inst_data_ctrl),
-		.is_branch_exe(is_branch_exe),
-		.regw_addr_exe(regw_addr_exe),
-		.wb_wen_exe(wb_wen_exe),
-		.is_branch_mem(is_branch_mem),
-		.regw_addr_mem(regw_addr_mem),
-		.wb_wen_mem(wb_wen_mem),
-		.pc_src(pc_src_ctrl),
-		.imm_ext(imm_ext_ctrl),
-		.exe_a_src(exe_a_src_ctrl),
-		.exe_b_src(exe_b_src_ctrl),
-		.exe_alu_oper(exe_alu_oper_ctrl),
-		.mem_ren(mem_ren_ctrl),
-		.mem_wen(mem_wen_ctrl),
-		.wb_addr_src(wb_addr_src_ctrl),
-		.wb_data_src(wb_data_src_ctrl),
-		.wb_wen(wb_wen_ctrl),
-		.unrecognized(),
-		.if_rst(if_rst),
-		.if_en(if_en),
-		.if_valid(if_valid),
-		.id_rst(id_rst),
-		.id_en(id_en),
-		.id_valid(id_valid),
-		.exe_rst(exe_rst),
-		.exe_en(exe_en),
-		.exe_valid(exe_valid),
-		.mem_rst(mem_rst),
-		.mem_en(mem_en),
-		.mem_valid(mem_valid),
-		.wb_rst(wb_rst),
-		.wb_en(wb_en),
-		.wb_valid(wb_valid)
-	);
+		// this stall indicate that ID is waiting for previous instruction, should insert NOPs between ID and EXE.
+//		else if (reg_stall) begin
+//			if_en = 0;
+//			id_en = 0;
+//			exe_rst = 1;
+//		end
+//		// this stall indicate that a jump/branch instruction is running, so that 3 NOP should be inserted between IF and ID
+//		else if (branch_stall) begin
+//			id_rst = 1;
+//		end
+	end
 	
-	// data path
-	datapath DATAPATH (
-		.clk(clk),
-		`ifdef DEBUG
-		.debug_addr(debug_addr[5:0]),
-		.debug_data(debug_data),
-		`endif
-		.inst_data_id(inst_data_ctrl),
-		.is_branch_exe(is_branch_exe),
-		.regw_addr_exe(regw_addr_exe),
-		.wb_wen_exe(wb_wen_exe),
-		.is_branch_mem(is_branch_mem),
-		.regw_addr_mem(regw_addr_mem),
-		.wb_wen_mem(wb_wen_mem),
-		.pc_src_ctrl(pc_src_ctrl),
-		.imm_ext_ctrl(imm_ext_ctrl),
-		.exe_a_src_ctrl(exe_a_src_ctrl),
-		.exe_b_src_ctrl(exe_b_src_ctrl),
-		.exe_alu_oper_ctrl(exe_alu_oper_ctrl),
-		.mem_ren_ctrl(mem_ren_ctrl),
-		.mem_wen_ctrl(mem_wen_ctrl),
-		.wb_addr_src_ctrl(wb_addr_src_ctrl),
-		.wb_data_src_ctrl(wb_data_src_ctrl),
-		.wb_wen_ctrl(wb_wen_ctrl),
-		.if_rst(if_rst),
-		.if_en(if_en),
-		.if_valid(if_valid),
-		.inst_ren(inst_ren),
-		.inst_addr(inst_addr),
-		.inst_data(inst_data),
-		.id_rst(id_rst),
-		.id_en(id_en),
-		.id_valid(id_valid),
-		.exe_rst(exe_rst),
-		.exe_en(exe_en),
-		.exe_valid(exe_valid),
-		.mem_rst(mem_rst),
-		.mem_en(mem_en),
-		.mem_valid(mem_valid),
-		.mem_ren(mem_ren),
-		.mem_wen(mem_wen),
-		.mem_addr(mem_addr),
-		.mem_dout(mem_dout),
-		.mem_din(mem_din),
-		.wb_rst(wb_rst),
-		.wb_en(wb_en),
-		.wb_valid(wb_valid)
-	);
+	IF IF_PART(
+	   .clk(clk),
+	   .rst(if_rst),
+	   .en(if_en),
+	   .is_branch_mem(is_branch_mem),
+	   .branch_target_mem(branch_target_mem),
+	   `ifdef DEBUG
+	   .inst_addr(inst_addr),
+	   .inst_ren(inst_ren),
+	   `endif
+	   .valid(if_valid),
+	   .inst_addr_next(inst_addr_next),
+	   .inst_data(inst_data)
+	   );
+	   
+    ID ID_PART(
+    );
+    
+    EXE EXE_PART();
+    
+    MEM MEM_PART();
+    
+    WB WB_PART();
 	
 endmodule

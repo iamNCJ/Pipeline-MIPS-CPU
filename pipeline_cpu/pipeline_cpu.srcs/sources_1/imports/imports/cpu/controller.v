@@ -1,26 +1,19 @@
 `include "define.vh"
 
-
 /**
  * Controller for MIPS 5-stage pipelined CPU.
- * Author: Zhao, Hongyu  <power_zhy@foxmail.com>
  */
 module controller (/*AUTOARG*/
 	input wire clk,  // main clock
 	input wire rst,  // synchronous reset
-	// debug
-	`ifdef DEBUG
-	input wire debug_en,  // debug enable
-	input wire debug_step,  // debug step clock
-	`endif
 	// instruction decode
 	input wire [31:0] inst,  // instruction
-	input wire is_branch_exe,  // whether instruction in EXE stage is jump/branch instruction
-	input wire [4:0] regw_addr_exe,  // register write address from EXE stage
-	input wire wb_wen_exe,  // register write enable signal feedback from EXE stage
-	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
-	input wire [4:0] regw_addr_mem,  // register write address from MEM stage
-	input wire wb_wen_mem,  // register write enable signal feedback from MEM stage
+//	input wire is_branch_exe,  // whether instruction in EXE stage is jump/branch instruction
+//	input wire [4:0] regw_addr_exe,  // register write address from EXE stage
+//	input wire wb_wen_exe,  // register write enable signal feedback from EXE stage
+//	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
+//	input wire [4:0] regw_addr_mem,  // register write address from MEM stage
+//	input wire wb_wen_mem,  // register write enable signal feedback from MEM stage
 	output reg [2:0] pc_src,  // how would PC change to next
 	output reg imm_ext,  // whether using sign extended to immediate data
 	output reg [1:0] exe_a_src,  // data source of operand A for ALU
@@ -31,23 +24,7 @@ module controller (/*AUTOARG*/
 	output reg [1:0] wb_addr_src,  // address source to write data back to registers
 	output reg wb_data_src,  // data source of data being written back to registers
 	output reg wb_wen,  // register write enable signal
-	output reg unrecognized,  // whether current instruction can not be recognized
-	// pipeline control
-	output reg if_rst,  // stage reset signal
-	output reg if_en,  // stage enable signal
-	input wire if_valid,  // stage valid flag
-	output reg id_rst,
-	output reg id_en,
-	input wire id_valid,
-	output reg exe_rst,
-	output reg exe_en,
-	input wire exe_valid,
-	output reg mem_rst,
-	output reg mem_en,
-	input wire mem_valid,
-	output reg wb_rst,
-	output reg wb_en,
-	input wire wb_valid
+	output reg unrecognized  // whether current instruction can not be recognized
 	);
 	
 	`include "mips_define.vh"
@@ -202,87 +179,79 @@ module controller (/*AUTOARG*/
 		endcase
 	end
 	
-	// pipeline control
-	reg reg_stall;
-	reg branch_stall;
-	wire [4:0] addr_rs, addr_rt;
+//	// pipeline control
+//	reg reg_stall;
+//	reg branch_stall;
+//	wire [4:0] addr_rs, addr_rt;
 	
-	assign
-		addr_rs = inst[25:21],
-		addr_rt = inst[20:16];
+//	assign
+//		addr_rs = inst[25:21],
+//		addr_rt = inst[20:16];
 	
-	always @(*) begin
-		reg_stall = 0;
-		if (rs_used && addr_rs != 0) begin
-			if (regw_addr_exe == addr_rs && wb_wen_exe) begin
-				reg_stall = 1;
-			end
-			else if (regw_addr_mem == addr_rs && wb_wen_mem) begin
-				reg_stall = 1;
-			end
-		end
-		if (rt_used && addr_rt != 0) begin
-			if (regw_addr_exe == addr_rt && wb_wen_exe) begin
-				reg_stall = 1;
-			end
-			else if (regw_addr_mem == addr_rt && wb_wen_mem) begin
-				reg_stall = 1;
-			end
-		end
-	end
+//	always @(*) begin
+//		reg_stall = 0;
+//		if (rs_used && addr_rs != 0) begin
+//			if (regw_addr_exe == addr_rs && wb_wen_exe) begin
+//				reg_stall = 1;
+//			end
+//			else if (regw_addr_mem == addr_rs && wb_wen_mem) begin
+//				reg_stall = 1;
+//			end
+//		end
+//		if (rt_used && addr_rt != 0) begin
+//			if (regw_addr_exe == addr_rt && wb_wen_exe) begin
+//				reg_stall = 1;
+//			end
+//			else if (regw_addr_mem == addr_rt && wb_wen_mem) begin
+//				reg_stall = 1;
+//			end
+//		end
+//	end
 	
-	always @(*) begin
-		branch_stall = 0;
-		if (pc_src != PC_NEXT || is_branch_exe || is_branch_mem)
-			branch_stall = 1;
-	end
+//	always @(*) begin
+//		branch_stall = 0;
+//		if (pc_src != PC_NEXT || is_branch_exe || is_branch_mem)
+//			branch_stall = 1;
+//	end
 	
-	`ifdef DEBUG
-	reg debug_step_prev;
-	
-	always @(posedge clk) begin
-		debug_step_prev <= debug_step;
-	end
-	`endif
-	
-	always @(*) begin
-		if_rst = 0;
-		if_en = 1;
-		id_rst = 0;
-		id_en = 1;
-		exe_rst = 0;
-		exe_en = 1;
-		mem_rst = 0;
-		mem_en = 1;
-		wb_rst = 0;
-		wb_en = 1;
-		if (rst) begin
-			if_rst = 1;
-			id_rst = 1;
-			exe_rst = 1;
-			mem_rst = 1;
-			wb_rst = 1;
-		end
-		`ifdef DEBUG
-		// suspend and step execution
-		else if ((debug_en) && ~(~debug_step_prev && debug_step)) begin
-			if_en = 0;
-			id_en = 0;
-			exe_en = 0;
-			mem_en = 0;
-			wb_en = 0;
-		end
-		`endif
-		// this stall indicate that ID is waiting for previous instruction, should insert NOPs between ID and EXE.
-		else if (reg_stall) begin
-			if_en = 0;
-			id_en = 0;
-			exe_rst = 1;
-		end
-		// this stall indicate that a jump/branch instruction is running, so that 3 NOP should be inserted between IF and ID
-		else if (branch_stall) begin
-			id_rst = 1;
-		end
-	end
+//	always @(*) begin
+//		if_rst = 0;
+//		if_en = 1;
+//		id_rst = 0;
+//		id_en = 1;
+//		exe_rst = 0;
+//		exe_en = 1;
+//		mem_rst = 0;
+//		mem_en = 1;
+//		wb_rst = 0;
+//		wb_en = 1;
+//		if (rst) begin
+//			if_rst = 1;
+//			id_rst = 1;
+//			exe_rst = 1;
+//			mem_rst = 1;
+//			wb_rst = 1;
+//		end
+//		`ifdef DEBUG
+//		// suspend and step execution
+//		else if ((debug_en) && ~(~debug_step_prev && debug_step)) begin
+//			if_en = 0;
+//			id_en = 0;
+//			exe_en = 0;
+//			mem_en = 0;
+//			wb_en = 0;
+//		end
+//		`endif
+//		// this stall indicate that ID is waiting for previous instruction, should insert NOPs between ID and EXE.
+//		else if (reg_stall) begin
+//			if_en = 0;
+//			id_en = 0;
+//			exe_rst = 1;
+//		end
+//		// this stall indicate that a jump/branch instruction is running, so that 3 NOP should be inserted between IF and ID
+//		else if (branch_stall) begin
+//			id_rst = 1;
+//		end
+//	end
 	
 endmodule
