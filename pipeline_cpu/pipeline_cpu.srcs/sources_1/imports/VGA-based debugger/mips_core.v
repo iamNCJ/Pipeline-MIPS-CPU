@@ -19,11 +19,10 @@ module mips_core (
 	
 	`include "mips_define.vh"
 	
-	wire [31:0] inst_addr_next;
 	wire [31:0] inst_data;
 	
 	reg [4:0] regw_addr;
-    reg [31:0] inst_addr_next_id;
+    wire [31:0] inst_addr_next, inst_addr_next_id, inst_addr_next_exe;
     wire [31:0] data_rs, data_rt, data_imm;
     wire [2:0] pc_src;  // how would PC change to next
     wire [1:0] exe_a_src;  // data source of operand A for ALU
@@ -43,6 +42,7 @@ module mips_core (
 	wire [31:0] inst_data_id;
 	wire [31:0] inst_addr_id;
 	wire [4:0] addr_rs, addr_rt, addr_rd;
+	wire [31:0] inst_data_exe, inst_addr_exe;
 
 	
 	always @(posedge clk) begin
@@ -158,14 +158,14 @@ module mips_core (
         .inst_addr(inst_addr),
         .debug_addr(debug_addr),
         .debug_data_reg(debug_data_reg),
-        .inst_addr_id(inst_addr_id),
+        .inst_addr_out(inst_addr_id),
         .inst_data_out(inst_data_id),
         .addr_rs_out(addr_rs),
         .addr_rt_out(addr_rt),
         .addr_rd_out(addr_rd),
         `endif
         .regw_addr(regw_addr),
-        .inst_addr_next_id(inst_addr_next_id),
+        .inst_addr_next_out(inst_addr_next_id),
         .data_rs(data_rs),
         .data_rt(data_rt),
         .data_imm(data_imm),
@@ -180,7 +180,21 @@ module mips_core (
         .valid(id_valid)  // working flag
     );
     
-    EXE EXE_STAGE ();
+    EXE EXE_STAGE (
+        .clk(clk),
+        .en(exe_en),
+        .rst(exe_rst),
+        .id_valid(id_valid),
+        .inst_addr_next(inst_addr_next_id),
+        `ifdef DEBUG
+        .inst_data(inst_data_id),
+        .inst_addr(inst_addr_id),
+        .inst_addr_out(inst_data_exe),
+        .inst_data_out(inst_data_exe),
+        `endif
+        .inst_addr_next_out(inst_addr_next_exe),
+        .valid(exe_valid)
+    );
     
     MEM MEM_STAGE ();
     

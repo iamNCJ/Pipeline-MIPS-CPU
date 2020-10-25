@@ -14,14 +14,14 @@ module ID(
     input wire [31:0] inst_addr,
     input wire [4:0] debug_addr,
     output reg [31:0] debug_data_reg,
-	output reg [31:0] inst_addr_id,  // address of instruction needed
+	output reg [31:0] inst_addr_out,  // address of instruction needed
 	output wire [31:0] inst_data_out,
 	output wire [4:0] addr_rs_out,
 	output wire [4:0] addr_rt_out,
 	output wire [4:0] addr_rd_out,
     `endif
 	output reg [4:0] regw_addr,
-	output reg 	[31:0] inst_addr_next_id,
+	output reg 	[31:0] inst_addr_next_out,
     output wire [31:0] data_rs, 
     output wire [31:0] data_rt, 
     output wire [31:0] data_imm,
@@ -56,18 +56,18 @@ module ID(
 		if (rst) begin
 			valid <= 0;
 			`ifdef DEBUG
-			inst_addr_id <= 0;
+			inst_addr_out <= 0;
 			`endif
 			inst_data_id <= 0;
-			inst_addr_next_id <= 0;
+			inst_addr_next_out <= 0;
 		end
 		else if (en) begin
 			valid <= if_valid;
 			`ifdef DEBUG
-			inst_addr_id <= inst_addr;
+			inst_addr_out <= inst_addr;
 			`endif
 			inst_data_id <= inst_data;
-			inst_addr_next_id <= inst_addr_next;
+			inst_addr_next_out <= inst_addr_next;
 		end
 	end
 	
