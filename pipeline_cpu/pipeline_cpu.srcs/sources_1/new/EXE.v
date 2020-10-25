@@ -93,10 +93,6 @@ module EXE(
 		end
 	end
 	
-//	always @(*) begin
-//		is_branch_exe <= (pc_src_exe != PC_NEXT);
-//	end
-	
 	assign
 		rs_rt_equal_exe = (data_rs_exe == data_rt_exe);
 
