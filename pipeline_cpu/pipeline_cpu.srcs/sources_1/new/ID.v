@@ -10,16 +10,16 @@ module ID(
 	input wire wb_wen_wb,
 	input wire [4:0] regw_addr_wb,
 	input wire [31:0] regw_data_wb,
-    `ifdef DEBUG	
     input wire [31:0] inst_addr,
+    `ifdef DEBUG
     input wire [4:0] debug_addr,
-    output reg [31:0] debug_data_reg,
-	output reg [31:0] inst_addr_out,  // address of instruction needed
-	output wire [31:0] inst_data_out,
+    output wire [31:0] debug_data_reg,
 	output wire [4:0] addr_rs_out,
 	output wire [4:0] addr_rt_out,
 	output wire [4:0] addr_rd_out,
     `endif
+    output reg [31:0] inst_addr_out,  // address of instruction needed
+	output wire [31:0] inst_data_out,
 	output reg [4:0] regw_addr,
 	output reg 	[31:0] inst_addr_next_out,
     output wire [31:0] data_rs, 
@@ -36,18 +36,16 @@ module ID(
 	output reg valid  // working flag
     );
     
-    
     `include "mips_define.vh"
-    
     
 	wire imm_ext;  // whether using sign extended to immediate data
 	wire [1:0] wb_addr_src;  // address source to write data back to registers
     wire [4:0] addr_rs, addr_rt, addr_rd;
 
     reg [31:0] inst_data_id;  // instruction fetched
-     
-    `ifdef DEBUG
     assign inst_data_out = inst_data_id;
+
+    `ifdef DEBUG
     assign addr_rs_out = addr_rs, addr_rt_out = addr_rt, addr_rd_out = addr_rd;
     `endif
     

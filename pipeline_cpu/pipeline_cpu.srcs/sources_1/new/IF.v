@@ -7,15 +7,13 @@ module IF (
 	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
 	input wire [31:0] branch_target_mem,
 	`ifdef DEBUG
-	output wire [31:0] inst_addr,  // address of instruction needed
 	output reg inst_ren,  // instruction read enable signal
 	`endif
+	output reg [31:0] pc,  // address of instruction needed
 	output reg valid,  // working flag
 	output wire [31:0] inst_addr_next,
 	output wire [31:0] inst_data  // instruction fetched
     );
-    
-    reg [31:0] pc;
 	
 	inst_rom INST_ROM (
 		.clk(clk),
@@ -23,9 +21,6 @@ module IF (
 		.dout(inst_data)
 		);
 	
-	`ifdef debug
-	assign inst_addr = pc;
-	`endif
 	assign inst_addr_next = pc + 4;
 	
 	always @(*) begin
