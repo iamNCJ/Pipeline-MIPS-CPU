@@ -18,13 +18,31 @@ module mips_core (
 	);
 	
 	`include "mips_define.vh"
+	
+	wire [31:0] inst_addr_next;
+	wire [31:0] inst_data;
+	
+	reg [4:0] regw_addr;
+    reg [31:0] inst_addr_next_id;
+    wire [31:0] data_rs, data_rt, data_imm;
+    wire [2:0] pc_src;  // how would PC change to next
+    wire [1:0] exe_a_src;  // data source of operand A for ALU
+    wire [1:0] exe_b_src;  // data source of operand B for ALU
+    wire [3:0] exe_alu_oper;  // ALU operation type
+    wire mem_ren;  // memory read enable signal
+    wire mem_wen;  // memory write enable signal
+    wire wb_data_src;  // data source of data being written back to registers
+    wire wb_wen;  // register write enable signal
 		
-	// debug
+	// debugger
 	`ifdef DEBUG
 	wire [31:0] debug_data_reg;
 	reg [31:0] debug_data_signal;
-	wire inst_ren;
+	wire inst_ren; // instruction read enable signal
 	wire [31:0] inst_addr;
+	wire [31:0] inst_data_id;
+	wire [31:0] inst_addr_id;
+	wire [4:0] addr_rs, addr_rt, addr_rd;
 
 	
 	always @(posedge clk) begin
@@ -111,7 +129,7 @@ module mips_core (
 //		end
 	end
 	
-	IF IF_PART(
+	IF IF_STAGE (
 	   .clk(clk),
 	   .rst(if_rst),
 	   .en(if_en),
@@ -126,13 +144,46 @@ module mips_core (
 	   .inst_data(inst_data)
 	   );
 	   
-    ID ID_PART(
+    ID ID_STAGE (
+        .clk(clk),
+        .rst(id_rst),
+        .en(id_en),
+        .if_valid(if_valid),
+        .inst_data(inst_data),
+        .inst_addr_next(inst_addr_next),
+        .wb_wen_wb(wb_wen_wb), // FIXME
+        .regw_addr_wb(regw_addr_wb), // FIXME
+        .regw_data_wb(regw_data_wb), // FIXME
+        `ifdef DEBUG
+        .inst_addr(inst_addr),
+        .debug_addr(debug_addr),
+        .debug_data_reg(debug_data_reg),
+        .inst_addr_id(inst_addr_id),
+        .inst_data_out(inst_data_id),
+        .addr_rs_out(addr_rs),
+        .addr_rt_out(addr_rt),
+        .addr_rd_out(addr_rd),
+        `endif
+        .regw_addr(regw_addr),
+        .inst_addr_next_id(inst_addr_next_id),
+        .data_rs(data_rs),
+        .data_rt(data_rt),
+        .data_imm(data_imm),
+        .pc_src(pc_src),  // how would PC change to next
+        .exe_a_src(exe_a_src),  // data source of operand A for ALU
+        .exe_b_src(exe_b_src),  // data source of operand B for ALU
+        .exe_alu_oper(exe_alu_oper),  // ALU operation type
+        .mem_ren(mem_ren),  // memory read enable signal
+        .mem_wen(mem_wen),  // memory write enable signal
+        .wb_data_src(wb_data_src),  // data source of data being written back to registers
+        .wb_wen(wb_wen),  // register write enable signal
+        .valid(id_valid)  // working flag
     );
     
-    EXE EXE_PART();
+    EXE EXE_STAGE ();
     
-    MEM MEM_PART();
+    MEM MEM_STAGE ();
     
-    WB WB_PART();
+    WB WB_STAGE();
 	
 endmodule
