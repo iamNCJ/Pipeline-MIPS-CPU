@@ -25,6 +25,10 @@ module MEM(
     output reg is_branch_mem,
     output reg [31:0] branch_target_mem,
     output wire [31:0] mem_data_read_out,  // data read from memory
+	output reg wb_wen_mem,
+	output reg [31:0] alu_out_mem,
+	output reg wb_data_src_mem,
+	output reg [4:0] regw_addr_mem,
     output reg valid
     );
     
@@ -32,6 +36,16 @@ module MEM(
     
 	wire [31:0] mem_addr;  // address of memory
 	wire [31:0] mem_data_to_write;  // data writing to memory
+
+	reg [2:0] pc_src_mem;
+	reg [31:0] inst_addr_mem;
+	reg [31:0] inst_data_mem;
+	reg [31:0] inst_addr_next_mem;
+	reg [31:0] data_rs_mem;
+	reg [31:0] data_rt_mem;
+	reg [31:0] mem_ren_mem;
+	reg [31:0] mem_wen_mem;
+	reg rs_rt_equal_mem;
 	
 	`ifdef DEBUG
 	assign
@@ -39,20 +53,6 @@ module MEM(
 	   mem_addr_out = mem_addr;
 	`endif
 
-	reg [2:0] pc_src_mem;
-	reg [31:0] inst_addr_mem;
-	reg [31:0] inst_data_mem;
-	reg [31:0] inst_addr_next_mem;
-	reg [4:0] regw_addr_mem;
-	reg [31:0] data_rs_mem;
-	reg [31:0] data_rt_mem;
-	reg [31:0] alu_out_mem;
-	reg [31:0] mem_ren_mem;
-	reg [31:0] mem_wen_mem;
-	reg wb_data_src_mem;
-	reg wb_wen_mem;
-	reg rs_rt_equal_mem;
-	
 	data_ram DATA_RAM (
 		.clk(clk),
 		.we(mem_wen),

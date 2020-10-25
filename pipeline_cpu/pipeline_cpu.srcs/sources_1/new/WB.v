@@ -1,46 +1,43 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/24/2020 07:09:21 PM
-// Design Name: 
-// Module Name: WB
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
+`include "define.vh"
 
 module WB(
-
+    input wire clk,
+    input wire rst,
+    input wire en,
+    input wire mem_valid,
+    input wire wb_wen_mem,
+    input wire [31:0] mem_data_read,
+    input wire [31:0] alu_out_mem,
+    input wire wb_data_src_mem,
+    input wire [4:0] regw_addr_mem,
+    output reg wb_wen_wb,
+    output reg [31:0] regw_addr_wb,
+    output reg [31:0] regw_data_wb,
+    output reg valid
     );
     
-    	// WB stage
+    `include "mips_define.vh"
+    
+    reg wb_data_src_wb;
+    reg [31:0] alu_out_wb, mem_din_wb;
+    
+    // WB stage
 	always @(posedge clk) begin
-		if (wb_rst) begin
-			wb_valid <= 0;
+		if (rst) begin
+			valid <= 0;
 			wb_wen_wb <= 0;
 			wb_data_src_wb <= 0;
 			regw_addr_wb <= 0;
 			alu_out_wb <= 0;
 			mem_din_wb <= 0;
 		end
-		else if (wb_en) begin
-			wb_valid <= mem_valid;
+		else if (en) begin
+			valid <= mem_valid;
 			wb_wen_wb <= wb_wen_mem;
 			wb_data_src_wb <= wb_data_src_mem;
 			regw_addr_wb <= regw_addr_mem;
 			alu_out_wb <= alu_out_mem;
-			mem_din_wb <= mem_din;
+			mem_din_wb <= mem_data_read;
 		end
 	end
 	

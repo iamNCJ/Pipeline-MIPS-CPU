@@ -39,6 +39,11 @@ module mips_core (
     wire rs_rt_equal_exe;
     wire is_branch_mem;
     wire [31:0] branch_target_mem;
+    wire wb_wen_mem, wb_wen_wb;
+    wire [31:0] regw_addr_wb, regw_data_wb;
+    wire [31:0] alu_out_mem;
+    wire wb_data_src_mem;
+    wire [4:0] regw_addr_mem;
 
 	// debugger
 	`ifdef DEBUG
@@ -155,9 +160,9 @@ module mips_core (
         .if_valid(if_valid),
         .inst_data(inst_data),
         .inst_addr_next(inst_addr_next),
-        .wb_wen_wb(wb_wen_wb), // FIXME
-        .regw_addr_wb(regw_addr_wb), // FIXME
-        .regw_data_wb(regw_data_wb), // FIXME
+        .wb_wen_wb(wb_wen_wb),
+        .regw_addr_wb(regw_addr_wb),
+        .regw_data_wb(regw_data_wb),
         .inst_addr(inst_addr),
         .inst_addr_out(inst_addr_id),
         .inst_data_out(inst_data_id),
@@ -226,8 +231,8 @@ module mips_core (
     
     MEM MEM_STAGE (
         .clk(clk),
-        .en(en),
-        .rst(rst),
+        .en(mem_en),
+        .rst(mem_rst),
         .exe_valid(exe_valid),
         .pc_src(pc_src_exe),
         .inst_addr(inst_addr_exe),
@@ -249,9 +254,27 @@ module mips_core (
         .is_branch_mem(is_branch_mem),
         .branch_target_mem(branch_target_mem),
         .mem_data_read_out(mem_data_read),
+        .wb_wen_mem(wb_wen_mem),
+        .alu_out_mem(alu_out_mem),
+        .wb_data_src_mem(wb_data_src_mem),
+        .regw_addr_mem(regw_addr_mem),
         .valid(mem_valid)
     );
     
-    WB WB_STAGE();
+    WB WB_STAGE(
+        .clk(clk),
+        .rst(wb_rst),
+        .en(wb_en),
+        .mem_valid(mem_valid),
+        .wb_wen_mem(wb_wen_mem),
+        .mem_data_read(mem_data_read),
+        .alu_out_mem(alu_out_mem),
+        .wb_data_src_mem(wb_data_src_mem),
+        .regw_addr_mem(regw_addr_mem),
+        .wb_wen_wb(wb_wen_wb),
+        .regw_addr_wb(regw_addr_wb),
+        .regw_data_wb(regw_data_wb),
+        .valid(wb_valid)
+    );
 	
 endmodule
