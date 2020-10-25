@@ -214,44 +214,4 @@ module controller (/*AUTOARG*/
 //			branch_stall = 1;
 //	end
 	
-//	always @(*) begin
-//		if_rst = 0;
-//		if_en = 1;
-//		id_rst = 0;
-//		id_en = 1;
-//		exe_rst = 0;
-//		exe_en = 1;
-//		mem_rst = 0;
-//		mem_en = 1;
-//		wb_rst = 0;
-//		wb_en = 1;
-//		if (rst) begin
-//			if_rst = 1;
-//			id_rst = 1;
-//			exe_rst = 1;
-//			mem_rst = 1;
-//			wb_rst = 1;
-//		end
-//		`ifdef DEBUG
-//		// suspend and step execution
-//		else if ((debug_en) && ~(~debug_step_prev && debug_step)) begin
-//			if_en = 0;
-//			id_en = 0;
-//			exe_en = 0;
-//			mem_en = 0;
-//			wb_en = 0;
-//		end
-//		`endif
-//		// this stall indicate that ID is waiting for previous instruction, should insert NOPs between ID and EXE.
-//		else if (reg_stall) begin
-//			if_en = 0;
-//			id_en = 0;
-//			exe_rst = 1;
-//		end
-//		// this stall indicate that a jump/branch instruction is running, so that 3 NOP should be inserted between IF and ID
-//		else if (branch_stall) begin
-//			id_rst = 1;
-//		end
-//	end
-	
 endmodule

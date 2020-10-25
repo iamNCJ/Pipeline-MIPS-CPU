@@ -144,10 +144,10 @@ module mips_core (
 	   .en(if_en),
 	   .is_branch_mem(is_branch_mem),
 	   .branch_target_mem(branch_target_mem),
-	   .inst_addr(inst_addr),
 	   `ifdef DEBUG
 	   .inst_ren(inst_ren),
 	   `endif
+	   .pc(inst_addr),
 	   .valid(if_valid),
 	   .inst_addr_next(inst_addr_next),
 	   .inst_data(inst_data)

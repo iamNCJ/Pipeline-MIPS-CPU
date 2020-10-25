@@ -103,10 +103,6 @@ module ID(
 	controller CONTROLLER (
 		.clk(clk),
 		.rst(rst),
-		`ifdef DEBUG
-		.debug_en(debug_en),
-		.debug_step(debug_step),
-		`endif
 		.inst(inst_data),
 //		.is_branch_exe(is_branch_exe),
 //		.regw_addr_exe(regw_addr_exe),
