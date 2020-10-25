@@ -11,7 +11,7 @@ module WB(
     input wire wb_data_src_mem,
     input wire [4:0] regw_addr_mem,
     output reg wb_wen_wb,
-    output reg [31:0] regw_addr_wb,
+    output reg [4:0] regw_addr_wb,
     output reg [31:0] regw_data_wb,
     output reg valid
     );

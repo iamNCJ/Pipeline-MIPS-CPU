@@ -30,7 +30,7 @@ module mips_core (
     wire mem_wen, mem_wen_exe;  // memory write enable signal
     wire wb_data_src;  // data source of data being written back to registers
     wire wb_wen;  // register write enable signal
-    wire pc_src_exe;
+    wire [2:0] pc_src_exe;
     wire [31:0] alu_out_exe;
     wire [31:0] inst_addr, inst_addr_id, inst_addr_exe, inst_addr_mem;
     wire [31:0] inst_data, inst_data_id, inst_data_exe, inst_data_mem;
@@ -40,7 +40,8 @@ module mips_core (
     wire is_branch_mem;
     wire [31:0] branch_target_mem;
     wire wb_wen_mem, wb_wen_wb;
-    wire [31:0] regw_addr_wb, regw_data_wb;
+    wire [31:0] regw_data_wb;
+    wire [4:0] regw_addr_wb;
     wire [31:0] alu_out_mem;
     wire wb_data_src_mem;
     wire [4:0] regw_addr_mem;
@@ -258,6 +259,8 @@ module mips_core (
         .alu_out_mem(alu_out_mem),
         .wb_data_src_mem(wb_data_src_mem),
         .regw_addr_mem(regw_addr_mem),
+        .inst_addr_mem(inst_addr_mem),
+        .inst_data_mem(inst_data_mem),
         .valid(mem_valid)
     );
     

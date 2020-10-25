@@ -13,8 +13,8 @@ module MEM(
     input wire [31:0] data_rs,
     input wire [31:0] data_rt,
     input wire [31:0] alu_out,
-    input wire [31:0] mem_ren, // memory read enable signal // seems useless
-    input wire [31:0] mem_wen, // memory write enable signal
+    input wire mem_ren, // memory read enable signal // seems useless
+    input wire mem_wen, // memory write enable signal
     input wire wb_data_src,
     input wire wb_wen,
     input wire rs_rt_equal,
@@ -29,6 +29,8 @@ module MEM(
 	output reg [31:0] alu_out_mem,
 	output reg wb_data_src_mem,
 	output reg [4:0] regw_addr_mem,
+	output reg [31:0] inst_addr_mem,
+	output reg [31:0] inst_data_mem,
     output reg valid
     );
     
@@ -38,13 +40,9 @@ module MEM(
 	wire [31:0] mem_data_to_write;  // data writing to memory
 
 	reg [2:0] pc_src_mem;
-	reg [31:0] inst_addr_mem;
-	reg [31:0] inst_data_mem;
 	reg [31:0] inst_addr_next_mem;
 	reg [31:0] data_rs_mem;
 	reg [31:0] data_rt_mem;
-	reg [31:0] mem_ren_mem;
-	reg [31:0] mem_wen_mem;
 	reg rs_rt_equal_mem;
 	
 	`ifdef DEBUG
@@ -73,8 +71,6 @@ module MEM(
 			data_rs_mem <= 0;
 			data_rt_mem <= 0;
 			alu_out_mem <= 0;
-			mem_ren_mem <= 0;
-			mem_wen_mem <= 0;
 			wb_data_src_mem <= 0;
 			wb_wen_mem <= 0;
 			rs_rt_equal_mem <= 0;
@@ -89,8 +85,6 @@ module MEM(
 			data_rs_mem <= data_rs;
 			data_rt_mem <= data_rt;
 			alu_out_mem <= alu_out;
-			mem_ren_mem <= mem_ren;
-			mem_wen_mem <= mem_wen;
 			wb_data_src_mem <= wb_data_src;
 			wb_wen_mem <= wb_wen;
 			rs_rt_equal_mem <= rs_rt_equal;
@@ -112,8 +106,6 @@ module MEM(
 	end
 	
 	assign
-		mem_ren = mem_ren_mem,
-		mem_wen = mem_wen_mem,
 		mem_addr = alu_out_mem,
 		mem_data_to_write = data_rt_mem;
 

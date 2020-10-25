@@ -12,7 +12,7 @@ module ID(
 	input wire [31:0] regw_data_wb,
     input wire [31:0] inst_addr,
     `ifdef DEBUG
-    input wire [4:0] debug_addr,
+    input wire [6:0] debug_addr,
     output wire [31:0] debug_data_reg,
 	output wire [4:0] addr_rs_out,
 	output wire [4:0] addr_rt_out,
