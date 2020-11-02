@@ -7,6 +7,7 @@
  */
 module regfile (
 	input wire clk,  // main clock
+	input wire rst,
 	// debug
 	`ifdef DEBUG
 	input wire [4:0] debug_addr,  // debug address
@@ -26,9 +27,15 @@ module regfile (
 	
 	reg [31:0] regfile [1:31];  // $zero is always zero
 		
-	// write
-	always @(posedge clk) begin
-		if (en_w && addr_w != 0)
+	// write && reset
+	integer i;
+	always @(posedge clk or posedge rst) begin
+	   if (rst) begin
+	       for (i = 1; i <= 31; i = i + 1) begin
+	           regfile[i] = 0;
+	       end
+	   end
+	   else if (en_w && addr_w != 0)
 			regfile[addr_w] <= data_w;
 	end
 	

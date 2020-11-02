@@ -5,6 +5,7 @@ module ID(
 	input wire rst,  // stage reset signal
 	input wire en,  // stage enable signal
 	input wire if_valid,
+	input wire reg_rst,
 	input wire [31:0] inst_data,
 	input wire [31:0] inst_addr_next,
 	input wire wb_wen_wb,
@@ -94,6 +95,7 @@ module ID(
 
 	regfile REGFILE (
 		.clk(clk),
+		.rst(reg_rst),
 		`ifdef DEBUG
 		.debug_addr(debug_addr[4:0]),
 		.debug_data(debug_data_reg),

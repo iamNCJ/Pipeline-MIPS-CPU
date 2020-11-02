@@ -104,6 +104,7 @@ module mips_core (
 	wire is_branch_mem;  // whether instruction in MEM stage is jump/branch instruction
 	wire [4:0] regw_addr_mem;  // register write address from MEM stage
 	wire wb_wen_mem;  // register write enable signal feedback from MEM stage
+	reg reg_rst; // reset regfile
 	
 	always @(*) begin
 		if_rst = 0;
@@ -116,12 +117,14 @@ module mips_core (
 		mem_en = 1;
 		wb_rst = 0;
 		wb_en = 1;
+		reg_rst = 0;
 		if (rst) begin
 			if_rst = 1;
 			id_rst = 1;
 			exe_rst = 1;
 			mem_rst = 1;
 			wb_rst = 1;
+			reg_rst = 1;
 		end
 		`ifdef DEBUG
 		// suspend and step execution
@@ -164,6 +167,7 @@ module mips_core (
         .clk(clk),
         .rst(id_rst),
         .en(id_en),
+        .reg_rst(reg_rst),
         .if_valid(if_valid),
         .inst_data(inst_data),
         .inst_addr_next(inst_addr_next),
