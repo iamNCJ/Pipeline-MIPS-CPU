@@ -8,6 +8,12 @@ module controller (/*AUTOARG*/
 	input wire rst,  // synchronous reset
 	// instruction decode
 	input wire [31:0] inst,  // instruction
+	input wire is_branch_exe,  // whether instruction in EXE stage is jump/branch instruction
+	input wire [4:0] regw_addr_exe,  // register write address from EXE stage
+	input wire wb_wen_exe,  // register write enable signal feedback from EXE stage
+	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
+	input wire [4:0] regw_addr_mem,  // register write address from MEM stage
+	input wire wb_wen_mem,  // register write enable signal feedback from MEM stage
 	output reg [2:0] pc_src,  // how would PC change to next
 	output reg imm_ext,  // whether using sign extended to immediate data
 	output reg [1:0] exe_a_src,  // data source of operand A for ALU
@@ -18,6 +24,8 @@ module controller (/*AUTOARG*/
 	output reg [1:0] wb_addr_src,  // address source to write data back to registers
 	output reg wb_data_src,  // data source of data being written back to registers
 	output reg wb_wen,  // register write enable signal
+	output reg reg_stall,
+	output reg branch_stall,
 	output reg unrecognized  // whether current instruction can not be recognized
 	);
 	
@@ -171,6 +179,39 @@ module controller (/*AUTOARG*/
 				unrecognized = 1;
 			end
 		endcase
+	end
+	
+	// pipeline control
+	wire [4:0] addr_rs, addr_rt;
+	
+	assign
+		addr_rs = inst[25:21],
+		addr_rt = inst[20:16];
+	
+	always @(*) begin
+		reg_stall = 0;
+		if (rs_used && addr_rs != 0) begin
+			if (regw_addr_exe == addr_rs && wb_wen_exe) begin
+				reg_stall = 1;
+			end
+			else if (regw_addr_mem == addr_rs && wb_wen_mem) begin
+				reg_stall = 1;
+			end
+		end
+		if (rt_used && addr_rt != 0) begin
+			if (regw_addr_exe == addr_rt && wb_wen_exe) begin
+				reg_stall = 1;
+			end
+			else if (regw_addr_mem == addr_rt && wb_wen_mem) begin
+				reg_stall = 1;
+			end
+		end
+	end
+	
+	always @(*) begin
+		branch_stall = 0;
+		if (pc_src != PC_NEXT || is_branch_exe || is_branch_mem)
+			branch_stall = 1;
 	end
 	
 endmodule

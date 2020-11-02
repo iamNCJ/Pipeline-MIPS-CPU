@@ -95,9 +95,15 @@ module mips_core (
 	`endif
 	
 	// pipeline
+	wire reg_stall, branch_stall;
 	reg if_rst, id_rst, exe_rst, mem_rst, wb_rst;  // stage reset signal
 	reg if_en, id_en, exe_en, mem_en, wb_en;  // stage enable signal
 	wire if_valid, id_valid, exe_valid, mem_valid, wb_valid;  // stage valid flag
+	wire is_branch_exe;  // whether instruction in EXE stage is jump/branch instruction
+	wire wb_wen_exe;  // register write enable signal feedback from EXE stage
+	wire is_branch_mem;  // whether instruction in MEM stage is jump/branch instruction
+	wire [4:0] regw_addr_mem;  // register write address from MEM stage
+	wire wb_wen_mem;  // register write enable signal feedback from MEM stage
 	
 	always @(*) begin
 		if_rst = 0;
@@ -127,6 +133,16 @@ module mips_core (
 			wb_en = 0;
 		end
 		`endif
+		// this stall indicate that ID is waiting for previous instruction, should insert NOPs between ID and EXE.
+		else if (reg_stall) begin
+			if_en = 0;
+			id_en = 0;
+			exe_rst = 1;
+		end
+		// this stall indicate that a jump/branch instruction is running, so that 3 NOP should be inserted between IF and ID
+		else if (branch_stall) begin
+			id_rst = 1;
+		end
 	end
 	
 	IF IF_STAGE (
@@ -157,6 +173,12 @@ module mips_core (
         .inst_addr(inst_addr),
         .inst_addr_out(inst_addr_id),
         .inst_data_out(inst_data_id),
+        .is_branch_exe(is_branch_exe),
+		.regw_addr_exe(regw_addr_exe),
+		.wb_wen_exe(wb_wen_exe),
+		.is_branch_mem(is_branch_mem),
+		.regw_addr_mem(regw_addr_mem),
+		.wb_wen_mem(wb_wen_mem),
         `ifdef DEBUG
         .debug_addr(debug_addr),
         .debug_data_reg(debug_data_reg),
@@ -177,6 +199,8 @@ module mips_core (
         .mem_wen(mem_wen),  // memory write enable signal
         .wb_data_src(wb_data_src),  // data source of data being written back to registers
         .wb_wen(wb_wen),  // register write enable signal
+        .reg_stall(reg_stall),
+        .branch_stall(branch_stall),
         .valid(id_valid)  // working flag
     );
 

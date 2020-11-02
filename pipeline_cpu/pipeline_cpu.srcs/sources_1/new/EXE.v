@@ -38,6 +38,7 @@ module EXE(
     output reg wb_data_src_exe,
     output reg wb_wen_exe,
     output wire rs_rt_equal_exe,
+    output reg is_branch_exe,
     output reg valid
     );
     
@@ -95,6 +96,10 @@ module EXE(
 	
 	assign
 		rs_rt_equal_exe = (data_rs_exe == data_rt_exe);
+		
+	always @(*) begin
+		is_branch_exe <= (pc_src_exe != PC_NEXT);
+	end
 
 	always @(*) begin
 		opa_exe = data_rs_exe;

@@ -11,6 +11,12 @@ module ID(
 	input wire [4:0] regw_addr_wb,
 	input wire [31:0] regw_data_wb,
     input wire [31:0] inst_addr,
+	input wire is_branch_exe,  // whether instruction in EXE stage is jump/branch instruction
+	input wire [4:0] regw_addr_exe,  // register write address from EXE stage
+	input wire wb_wen_exe,  // register write enable signal feedback from EXE stage
+	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
+	input wire [4:0] regw_addr_mem,  // register write address from MEM stage
+	input wire wb_wen_mem,  // register write enable signal feedback from MEM stage
     `ifdef DEBUG
     input wire [6:0] debug_addr,
     output wire [31:0] debug_data_reg,
@@ -33,6 +39,8 @@ module ID(
 	output wire mem_wen,  // memory write enable signal
 	output wire wb_data_src,  // data source of data being written back to registers
 	output wire wb_wen,  // register write enable signal
+	output wire reg_stall,
+	output wire branch_stall,
 	output reg valid  // working flag
     );
     
@@ -104,6 +112,12 @@ module ID(
 		.clk(clk),
 		.rst(rst),
 		.inst(inst_data_id),
+		.is_branch_exe(is_branch_exe),
+		.regw_addr_exe(regw_addr_exe),
+		.wb_wen_exe(wb_wen_exe),
+		.is_branch_mem(is_branch_mem),
+		.regw_addr_mem(regw_addr_mem),
+		.wb_wen_mem(wb_wen_mem),
 		.pc_src(pc_src),
 		.imm_ext(imm_ext),
 		.exe_a_src(exe_a_src),
@@ -114,6 +128,8 @@ module ID(
 		.wb_addr_src(wb_addr_src),
 		.wb_data_src(wb_data_src),
 		.wb_wen(wb_wen),
+		.reg_stall(reg_stall),
+		.branch_stall(branch_stall),
 		.unrecognized()
 	);
 
