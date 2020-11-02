@@ -103,7 +103,7 @@ module ID(
 	controller CONTROLLER (
 		.clk(clk),
 		.rst(rst),
-		.inst(inst_data),
+		.inst(inst_data_id),
 		.pc_src(pc_src),
 		.imm_ext(imm_ext),
 		.exe_a_src(exe_a_src),
