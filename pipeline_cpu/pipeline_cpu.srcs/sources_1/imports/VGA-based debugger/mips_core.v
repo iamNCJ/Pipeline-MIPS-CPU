@@ -245,6 +245,7 @@ module mips_core (
         .wb_data_src_exe(wb_data_src_exe),
         .wb_wen_exe(wb_wen_exe),
         .rs_rt_equal_exe(rs_rt_equal_exe),
+        .is_branch_exe(is_branch_exe),
         .valid(exe_valid)
     );
     
