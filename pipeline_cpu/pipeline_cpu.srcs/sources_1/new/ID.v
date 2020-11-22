@@ -137,7 +137,6 @@ module ID(
 		.wb_addr_src(wb_addr_src),
 		.wb_data_src(wb_data_src),
 		.wb_wen(wb_wen),
-		.reg_stall(reg_stall),
 		.branch_stall(branch_stall),
 		.fwd_a(fwd_a_ctrl),
 		.fwd_b(fwd_b_ctrl),
