@@ -18,6 +18,7 @@ module MEM(
     input wire wb_data_src,
     input wire wb_wen,
     input wire rs_rt_equal,
+    input wire is_load_exe,
     `ifdef DEBUG
     output wire [31:0] mem_data_write_out,
     output wire [31:0] mem_addr_out,
@@ -31,6 +32,7 @@ module MEM(
 	output reg [4:0] regw_addr_mem,
 	output reg [31:0] inst_addr_mem,
 	output reg [31:0] inst_data_mem,
+	output reg is_load_mem,  // whether instruction in MEM stage is load instruction
     output reg valid
     );
     
@@ -73,6 +75,7 @@ module MEM(
 			alu_out_mem <= 0;
 			wb_data_src_mem <= 0;
 			wb_wen_mem <= 0;
+			is_load_mem <= 0;
 			rs_rt_equal_mem <= 0;
 		end
 		else if (en) begin
@@ -87,6 +90,7 @@ module MEM(
 			alu_out_mem <= alu_out;
 			wb_data_src_mem <= wb_data_src;
 			wb_wen_mem <= wb_wen;
+			is_load_mem <= is_load_exe;
 			rs_rt_equal_mem <= rs_rt_equal;
 		end
 	end

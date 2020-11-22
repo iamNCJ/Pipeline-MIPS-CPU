@@ -37,8 +37,8 @@ module EXE(
     output reg [4:0] regw_addr_exe, 
     output wire [31:0] alu_out,
     output reg [2:0] pc_src_exe,
-    output reg [31:0] data_rs_exe,
-    output reg [31:0] data_rt_exe,
+    output reg [31:0] data_rs_fwd,
+    output reg [31:0] data_rt_fwd,
     output reg mem_ren_exe,
     output reg mem_wen_exe,
     output reg wb_data_src_exe,
@@ -54,7 +54,7 @@ module EXE(
     reg [31:0] data_imm_exe;
     reg [31:0] opa_exe, opb_exe;
     reg [1:0] fwd_a_exe, fwd_b_exe;
-    reg [31:0] data_rs_fwd, data_rt_fwd;
+    reg [31:0] data_rs_exe, data_rt_exe;
     
     `ifdef DEBUG
     assign opa_out = opa_exe, opb_out = opb_exe;

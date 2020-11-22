@@ -18,6 +18,8 @@ module ID(
 	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
 	input wire [4:0] regw_addr_mem,  // register write address from MEM stage
 	input wire wb_wen_mem,  // register write enable signal feedback from MEM stage
+	input wire is_load_exe,
+	input wire is_load_mem,
     `ifdef DEBUG
     input wire [6:0] debug_addr,
     output wire [31:0] debug_data_reg,
@@ -42,6 +44,9 @@ module ID(
 	output wire wb_wen,  // register write enable signal
 	output wire reg_stall,
 	output wire branch_stall,
+	output wire [1:0] fwd_a_ctrl,
+	output wire [1:0] fwd_b_ctrl,
+	output wire is_load_id,
 	output reg valid  // working flag
     );
     
@@ -115,11 +120,11 @@ module ID(
 		.rst(rst),
 		.inst(inst_data_id),
 		.is_branch_exe(is_branch_exe),
-		.is_load_exe(), // FIXME
+		.is_load_exe(is_load_exe),
 		.regw_addr_exe(regw_addr_exe),
 		.wb_wen_exe(wb_wen_exe),
 		.is_branch_mem(is_branch_mem),
-		.is_load_mem(), // FIXME
+		.is_load_mem(is_load_mem),
 		.regw_addr_mem(regw_addr_mem),
 		.wb_wen_mem(wb_wen_mem),
 		.pc_src(pc_src),
@@ -134,9 +139,9 @@ module ID(
 		.wb_wen(wb_wen),
 		.reg_stall(reg_stall),
 		.branch_stall(branch_stall),
-		.fwd_a(), // FIXME
-		.fwd_b(), // FIXME
-		.is_load(), // FIXME
+		.fwd_a(fwd_a_ctrl),
+		.fwd_b(fwd_b_ctrl),
+		.is_load(is_load_id),
 		.unrecognized()
 	);
 
