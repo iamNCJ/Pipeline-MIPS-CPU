@@ -9,9 +9,11 @@ module controller (/*AUTOARG*/
 	// instruction decode
 	input wire [31:0] inst,  // instruction
 	input wire is_branch_exe,  // whether instruction in EXE stage is jump/branch instruction
+	input wire is_load_exe,  // whether instruction in EXE stage is load instruction
 	input wire [4:0] regw_addr_exe,  // register write address from EXE stage
 	input wire wb_wen_exe,  // register write enable signal feedback from EXE stage
 	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
+	input wire is_load_mem,  // whether instruction in MEM stage is load instruction
 	input wire [4:0] regw_addr_mem,  // register write address from MEM stage
 	input wire wb_wen_mem,  // register write enable signal feedback from MEM stage
 	output reg [2:0] pc_src,  // how would PC change to next
@@ -24,8 +26,10 @@ module controller (/*AUTOARG*/
 	output reg [1:0] wb_addr_src,  // address source to write data back to registers
 	output reg wb_data_src,  // data source of data being written back to registers
 	output reg wb_wen,  // register write enable signal
-	output reg reg_stall,
 	output reg branch_stall,
+	output reg [1:0] fwd_a,  // forwarding selection for channel A
+	output reg [1:0] fwd_b,  // forwarding selection for channel B
+	output reg is_load,  // whether current instruction is load instruction
 	output reg unrecognized  // whether current instruction can not be recognized
 	);
 	
@@ -47,6 +51,7 @@ module controller (/*AUTOARG*/
 		wb_wen = 0;
 		rs_used = 0;
 		rt_used = 0;
+		is_load = 0;
 		unrecognized = 0;
 		case (inst[31:26])
 			INST_R: begin
@@ -165,6 +170,7 @@ module controller (/*AUTOARG*/
 				wb_addr_src = WB_ADDR_RT;
 				wb_data_src = WB_DATA_MEM;
 				wb_wen = 1;
+				is_load = 1;
 				rs_used = 1;
 			end
 			INST_SW: begin
@@ -189,21 +195,28 @@ module controller (/*AUTOARG*/
 		addr_rt = inst[20:16];
 	
 	always @(*) begin
-		reg_stall = 0;
+		fwd_a = FWD_RS_RT;
+		fwd_b = FWD_RS_RT;
 		if (rs_used && addr_rs != 0) begin
 			if (regw_addr_exe == addr_rs && wb_wen_exe) begin
-				reg_stall = 1;
+				if (is_load_exe)
+					fwd_a = FWD_MEM_OUT;
+				else
+					fwd_a = FWD_ALU_OUT;
 			end
 			else if (regw_addr_mem == addr_rs && wb_wen_mem) begin
-				reg_stall = 1;
+				fwd_a = FWD_WB_DATA;
 			end
 		end
 		if (rt_used && addr_rt != 0) begin
 			if (regw_addr_exe == addr_rt && wb_wen_exe) begin
-				reg_stall = 1;
+				if (is_load_exe)
+					fwd_b = FWD_MEM_OUT;
+				else
+					fwd_b = FWD_ALU_OUT;
 			end
 			else if (regw_addr_mem == addr_rt && wb_wen_mem) begin
-				reg_stall = 1;
+				fwd_b = FWD_WB_DATA;
 			end
 		end
 	end

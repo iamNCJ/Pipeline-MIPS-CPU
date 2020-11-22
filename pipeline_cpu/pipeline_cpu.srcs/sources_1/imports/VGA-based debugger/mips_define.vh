@@ -44,6 +44,13 @@ localparam
 	WB_DATA_ALU   = 0,
 	WB_DATA_MEM   = 1;
 
+// Forwarding sources
+localparam
+    FWD_RS_RT   = 0,
+    FWD_MEM_OUT = 1,
+    FWD_ALU_OUT = 2,
+    FWD_WB_DATA = 3;
+
 // variables
 localparam
 	PC_RESET  = 32'h0000_0000;

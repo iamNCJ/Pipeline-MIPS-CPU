@@ -115,9 +115,11 @@ module ID(
 		.rst(rst),
 		.inst(inst_data_id),
 		.is_branch_exe(is_branch_exe),
+		.is_load_exe(), // FIXME
 		.regw_addr_exe(regw_addr_exe),
 		.wb_wen_exe(wb_wen_exe),
 		.is_branch_mem(is_branch_mem),
+		.is_load_mem(), // FIXME
 		.regw_addr_mem(regw_addr_mem),
 		.wb_wen_mem(wb_wen_mem),
 		.pc_src(pc_src),
@@ -132,6 +134,9 @@ module ID(
 		.wb_wen(wb_wen),
 		.reg_stall(reg_stall),
 		.branch_stall(branch_stall),
+		.fwd_a(), // FIXME
+		.fwd_b(), // FIXME
+		.is_load(), // FIXME
 		.unrecognized()
 	);
 

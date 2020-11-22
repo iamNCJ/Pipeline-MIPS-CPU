@@ -35,16 +35,14 @@ module mips_core (
     wire [31:0] inst_addr, inst_addr_id, inst_addr_exe, inst_addr_mem;
     wire [31:0] inst_data, inst_data_id, inst_data_exe, inst_data_mem;
     wire [31:0] data_rs_exe, data_rt_exe;
-    wire wb_data_src_exe, wb_wen_exe;
+    wire wb_data_src_exe;
     wire rs_rt_equal_exe;
-    wire is_branch_mem;
     wire [31:0] branch_target_mem;
-    wire wb_wen_mem, wb_wen_wb;
+    wire wb_wen_wb;
     wire [31:0] regw_data_wb;
     wire [4:0] regw_addr_wb;
     wire [31:0] alu_out_mem;
     wire wb_data_src_mem;
-    wire [4:0] regw_addr_mem;
 
 	// debugger
 	`ifdef DEBUG
@@ -136,12 +134,6 @@ module mips_core (
 			wb_en = 0;
 		end
 		`endif
-		// this stall indicate that ID is waiting for previous instruction, should insert NOPs between ID and EXE.
-		else if (reg_stall) begin
-			if_en = 0;
-			id_en = 0;
-			exe_rst = 1;
-		end
 		// this stall indicate that a jump/branch instruction is running, so that 3 NOP should be inserted between IF and ID
 		else if (branch_stall) begin
 			id_rst = 1;
@@ -228,6 +220,12 @@ module mips_core (
         .wb_wen(wb_wen),
         .inst_data(inst_data_id),
         .inst_addr(inst_addr_id),
+        .fwd_a_ctrl(), // FIXME
+        .fwd_b_ctrl(), // FIXME
+        .is_load_ctrl(), // FIXME
+        .mem_data_out(), // FIXME
+        .alu_out_mem(), // FIXME
+        .regw_data_wb(), // FIXME
         .inst_addr_out(inst_addr_exe),
         .inst_data_out(inst_data_exe),
         `ifdef DEBUG
@@ -246,6 +244,7 @@ module mips_core (
         .wb_wen_exe(wb_wen_exe),
         .rs_rt_equal_exe(rs_rt_equal_exe),
         .is_branch_exe(is_branch_exe),
+        .is_load_exe(), // FIXME
         .valid(exe_valid)
     );
     
