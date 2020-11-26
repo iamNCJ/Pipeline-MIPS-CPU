@@ -5,7 +5,6 @@ module MEM(
     input wire rst,
     input wire en,
     input wire exe_valid,
-    input wire [2:0] pc_src,
     input wire [31:0] inst_addr,
     input wire [31:0] inst_data,
     input wire [31:0] inst_addr_next,
@@ -44,7 +43,6 @@ module MEM(
 	wire [31:0] mem_addr;  // address of memory
 	wire [31:0] mem_data_to_write;  // data writing to memory
 
-	reg [2:0] pc_src_mem;
 	reg [31:0] inst_addr_next_mem;
 	reg [31:0] data_rs_mem;
 	reg [31:0] data_rt_mem;
@@ -69,7 +67,6 @@ module MEM(
 	always @(posedge clk) begin
 		if (rst) begin
 			valid <= 0;
-			pc_src_mem <= 0;
 			inst_addr_mem <= 0;
 			inst_data_mem <= 0;
 			inst_addr_next_mem <= 0;
@@ -84,10 +81,8 @@ module MEM(
 		end
 		else if (en) begin
 			valid <= exe_valid;
-			pc_src_mem <= pc_src;
 			inst_addr_mem <= inst_addr;
 			inst_data_mem <= inst_data;
-			inst_addr_next_mem <= inst_addr_next;
 			regw_addr_mem <= regw_addr;
 			data_rt_mem <= data_rt_exe;
 			alu_out_mem <= alu_out;

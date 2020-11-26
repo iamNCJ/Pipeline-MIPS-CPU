@@ -3,8 +3,7 @@ localparam
 	PC_NEXT    = 0,
 	PC_JUMP    = 1,
 	PC_JR      = 2,
-	PC_BEQ     = 4,
-	PC_BNE     = 5;
+	PC_BRANCH  = 3;
 
 // EXE A sources
 localparam

@@ -51,6 +51,7 @@ module ID(
 	output wire [1:0] fwd_b_ctrl,
 	output wire is_load_id,
 	output reg rs_rt_equal,  // whether data from RS and RT are equal
+	output reg fwd_m_ctrl,
 	output reg valid  // working flag
     );
     
@@ -143,15 +144,14 @@ module ID(
 		.clk(clk),
 		.rst(rst),
 		.inst(inst_data_id),
-		.is_branch_exe(is_branch_exe),
 		.is_load_exe(is_load_exe),
 		.regw_addr_exe(regw_addr_exe),
 		.wb_wen_exe(wb_wen_exe),
-		.is_branch_mem(is_branch_mem),
 		.is_load_mem(is_load_mem),
 		.regw_addr_mem(regw_addr_mem),
 		.wb_wen_mem(wb_wen_mem),
-		.pc_src(pc_src),
+		.pc_src(pc_src), // FIXME
+		.rs_rt_equal(), // FIXME 
 		.imm_ext(imm_ext),
 		.exe_a_src(exe_a_src),
 		.exe_b_src(exe_b_src),
@@ -161,12 +161,11 @@ module ID(
 		.wb_addr_src(wb_addr_src),
 		.wb_data_src(wb_data_src),
 		.wb_wen(wb_wen),
-		.branch_stall(branch_stall),
 		.fwd_a(fwd_a_ctrl),
 		.fwd_b(fwd_b_ctrl),
 		.is_load(is_load_id),
 		.reg_stall(reg_stall),
-		.fwd_m(), // FIXME
+		.fwd_m(fwd_m_ctrl),
 		.unrecognized()
 	);
 

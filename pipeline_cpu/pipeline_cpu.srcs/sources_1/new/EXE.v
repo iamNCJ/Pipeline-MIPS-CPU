@@ -11,7 +11,6 @@ module EXE(
     input wire [31:0] data_rt,
     input wire [31:0] data_imm,
     // 8 signals from controller in ID
-    input wire [2:0] pc_src,
     input wire [1:0] exe_a_src,
     input wire [1:0] exe_b_src,
     input wire [3:0] exe_alu_oper,
@@ -37,7 +36,6 @@ module EXE(
     output reg [31:0] inst_addr_next_out,
     output reg [4:0] regw_addr_exe, 
     output wire [31:0] alu_out,
-    output reg [2:0] pc_src_exe,
     output reg [31:0] data_rs_exe,
     output reg [31:0] data_rt_exe,
     output reg mem_ren_exe,
@@ -73,7 +71,6 @@ module EXE(
 			inst_data_out <= 0;
 			inst_addr_next_out <= 0;
 			regw_addr_exe <= 0;
-			pc_src_exe <= 0;
 			exe_a_src_exe <= 0;
 			exe_b_src_exe <= 0;
 			data_rs_exe <= 0;
@@ -93,7 +90,6 @@ module EXE(
 			inst_data_out <= inst_data;
 			inst_addr_next_out <= inst_addr_next;
 			regw_addr_exe <= regw_addr_id;
-			pc_src_exe <= pc_src;
 			exe_a_src_exe <= exe_a_src;
 			exe_b_src_exe <= exe_b_src;
 			data_rs_exe <= data_rs_fwd;

@@ -8,15 +8,14 @@ module controller (/*AUTOARG*/
 	input wire rst,  // synchronous reset
 	// instruction decode
 	input wire [31:0] inst,  // instruction
-	input wire is_branch_exe,  // whether instruction in EXE stage is jump/branch instruction
 	input wire is_load_exe,  // whether instruction in EXE stage is load instruction
 	input wire [4:0] regw_addr_exe,  // register write address from EXE stage
 	input wire wb_wen_exe,  // register write enable signal feedback from EXE stage
-	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
 	input wire is_load_mem,  // whether instruction in MEM stage is load instruction
 	input wire [4:0] regw_addr_mem,  // register write address from MEM stage
 	input wire wb_wen_mem,  // register write enable signal feedback from MEM stage
-	output reg [2:0] pc_src,  // how would PC change to next
+	input wire rs_rt_equal,
+	output reg [1:0] pc_src,  // how would PC change to next
 	output reg imm_ext,  // whether using sign extended to immediate data
 	output reg [1:0] exe_a_src,  // data source of operand A for ALU
 	output reg [1:0] exe_b_src,  // data source of operand B for ALU
@@ -26,7 +25,6 @@ module controller (/*AUTOARG*/
 	output reg [1:0] wb_addr_src,  // address source to write data back to registers
 	output reg wb_data_src,  // data source of data being written back to registers
 	output reg wb_wen,  // register write enable signal
-	output reg branch_stall,
 	output reg [1:0] fwd_a,  // forwarding selection for channel A
 	output reg [1:0] fwd_b,  // forwarding selection for channel B
 	output reg is_load,  // whether current instruction is load instruction
@@ -122,19 +120,17 @@ module controller (/*AUTOARG*/
 				wb_wen = 1;
 			end
 			INST_BEQ: begin
-				pc_src = PC_BEQ;
-				exe_a_src = EXE_A_BRANCH;
-				exe_b_src = EXE_B_BRANCH;
-				exe_alu_oper = EXE_ALU_ADD;
+			    if (rs_rt_equal) begin
+					pc_src = PC_BRANCH;
+				end
 				imm_ext = 1;
 				rs_used = 1;
 				rt_used = 1;
 			end
 			INST_BNE: begin
-				pc_src = PC_BNE;
-				exe_a_src = EXE_A_BRANCH;
-				exe_b_src = EXE_B_BRANCH;
-				exe_alu_oper = EXE_ALU_ADD;
+			    if (~rs_rt_equal) begin
+					pc_src = PC_BRANCH;
+				end
 				imm_ext = 1;
 				rs_used = 1;
 				rt_used = 1;
@@ -200,7 +196,7 @@ module controller (/*AUTOARG*/
 		addr_rt = inst[20:16];
 	
 	always @(*) begin
-	    reg_stall = 1;
+	    reg_stall = 0;
 		fwd_a = FWD_RS_RT;
 		fwd_b = FWD_RS_RT;
 		fwd_m = 0;
@@ -209,11 +205,11 @@ module controller (/*AUTOARG*/
 				if (is_load_exe)
 					reg_stall = 1;
 				else
-					fwd_a = FWD_ALU_OUT;
+					fwd_a = 1;
 			end
 			else if (regw_addr_mem == addr_rs && wb_wen_mem) begin
 			    if (is_load_mem)
-				    fwd_a = FWD_WB_DATA;
+				    fwd_a = 3;
 				else
 				    fwd_a = 2;
 			end
@@ -227,7 +223,7 @@ module controller (/*AUTOARG*/
 						reg_stall = 1;
 				end
 				else
-					fwd_b = FWD_MEM_OUT;
+					fwd_b = 1;
 			end
 			else if (regw_addr_mem == addr_rt && wb_wen_mem) begin
 			    if (is_load_mem)
@@ -238,11 +234,5 @@ module controller (/*AUTOARG*/
 			end
 		end
 	end
-	
-	always @(*) begin
-		branch_stall = 0;
-		if (pc_src != PC_NEXT || is_branch_exe || is_branch_mem)
-			branch_stall = 1;
-	end
-	
+
 endmodule
