@@ -138,6 +138,12 @@ module mips_core (
 			wb_en = 0;
 		end
 		`endif
+		// this stall indicate that ID is waiting for previous LW instruction, should insert one NOP between ID and EXE.
+		else if (reg_stall) begin
+			if_en = 0;
+			id_en = 0;
+			exe_rst = 1;
+		end
 		// this stall indicate that a jump/branch instruction is running, so that 3 NOP should be inserted between IF and ID
 		else if (branch_stall) begin
 			id_rst = 1;

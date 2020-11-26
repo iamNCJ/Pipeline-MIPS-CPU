@@ -13,12 +13,14 @@ module MEM(
     input wire [31:0] data_rs,
     input wire [31:0] data_rt,
     input wire [31:0] alu_out,
+    input wire [31:0] data_rt_exe,
     input wire mem_ren, // memory read enable signal // seems useless
     input wire mem_wen, // memory write enable signal
     input wire wb_data_src,
     input wire wb_wen,
     input wire rs_rt_equal,
     input wire is_load_exe,
+    input wire fwd_m_exe,  // forwarding selection for memory
     `ifdef DEBUG
     output wire [31:0] mem_data_write_out,
     output wire [31:0] mem_addr_out,
@@ -32,6 +34,7 @@ module MEM(
 	output reg [4:0] regw_addr_mem,
 	output reg [31:0] inst_addr_mem,
 	output reg [31:0] inst_data_mem,
+	output reg [31:0] regw_data_wb,
 	output reg is_load_mem,  // whether instruction in MEM stage is load instruction
     output reg valid
     );
@@ -46,6 +49,7 @@ module MEM(
 	reg [31:0] data_rs_mem;
 	reg [31:0] data_rt_mem;
 	reg rs_rt_equal_mem;
+	reg fwd_m_mem;
 	
 	`ifdef DEBUG
 	assign
@@ -70,11 +74,11 @@ module MEM(
 			inst_data_mem <= 0;
 			inst_addr_next_mem <= 0;
 			regw_addr_mem <= 0;
-			data_rs_mem <= 0;
 			data_rt_mem <= 0;
 			alu_out_mem <= 0;
 			wb_data_src_mem <= 0;
 			wb_wen_mem <= 0;
+			fwd_m_mem <= 0;
 			is_load_mem <= 0;
 			rs_rt_equal_mem <= 0;
 		end
@@ -85,32 +89,18 @@ module MEM(
 			inst_data_mem <= inst_data;
 			inst_addr_next_mem <= inst_addr_next;
 			regw_addr_mem <= regw_addr;
-			data_rs_mem <= data_rs;
-			data_rt_mem <= data_rt;
+			data_rt_mem <= data_rt_exe;
 			alu_out_mem <= alu_out;
 			wb_data_src_mem <= wb_data_src;
 			wb_wen_mem <= wb_wen;
+			fwd_m_mem <= fwd_m_exe;
 			is_load_mem <= is_load_exe;
 			rs_rt_equal_mem <= rs_rt_equal;
 		end
 	end
-	
-	always @(*) begin
-		is_branch_mem <= (pc_src_mem != PC_NEXT);
-	end
-	
-	always @(*) begin
-		case (pc_src_mem)
-			PC_JUMP: branch_target_mem <= {inst_addr_mem[31:28], inst_data_mem[25:0], 2'b0};
-			PC_JR: branch_target_mem <= data_rs_mem;
-			PC_BEQ: branch_target_mem <= rs_rt_equal_mem ? alu_out_mem : inst_addr_next_mem;
-			PC_BNE: branch_target_mem <= rs_rt_equal_mem ? inst_addr_next_mem : alu_out_mem;
-			default: branch_target_mem <= inst_addr_next_mem;  // will never used
-		endcase
-	end
-	
+
 	assign
 		mem_addr = alu_out_mem,
-		mem_data_to_write = data_rt_mem;
+		mem_data_to_write = fwd_m_mem ? regw_data_wb : data_rt_mem;
 
 endmodule

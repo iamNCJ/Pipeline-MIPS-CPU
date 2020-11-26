@@ -20,6 +20,9 @@ module ID(
 	input wire wb_wen_mem,  // register write enable signal feedback from MEM stage
 	input wire is_load_exe,
 	input wire is_load_mem,
+	input wire [31:0] mem_data_out,
+    input wire [31:0] alu_out_exe,
+    input wire [31:0] alu_out_mem,
     `ifdef DEBUG
     input wire [6:0] debug_addr,
     output wire [31:0] debug_data_reg,
@@ -47,6 +50,7 @@ module ID(
 	output wire [1:0] fwd_a_ctrl,
 	output wire [1:0] fwd_b_ctrl,
 	output wire is_load_id,
+	output reg rs_rt_equal,  // whether data from RS and RT are equal
 	output reg valid  // working flag
     );
     
@@ -97,6 +101,26 @@ module ID(
 			WB_ADDR_LINK: regw_addr = GPR_RA;
 		endcase
 	end
+	
+	reg [31:0] data_rs_fwd, data_rt_fwd;
+	
+	always @(*) begin
+		data_rs_fwd = data_rs;
+		data_rt_fwd = data_rt;
+		case (fwd_a_ctrl)
+			0: data_rs_fwd = data_rs;
+			1: data_rs_fwd = alu_out_exe;
+			2: data_rs_fwd = alu_out_mem;
+			3: data_rs_fwd = mem_data_out;
+		endcase
+		case (fwd_b_ctrl)
+			0: data_rt_fwd = data_rt;
+			1: data_rt_fwd = alu_out_exe;
+			2: data_rt_fwd = alu_out_mem;
+			3: data_rt_fwd = mem_data_out;
+		endcase
+		rs_rt_equal = (data_rs_fwd == data_rt_fwd);
+	end
 
 	regfile REGFILE (
 		.clk(clk),
@@ -141,6 +165,8 @@ module ID(
 		.fwd_a(fwd_a_ctrl),
 		.fwd_b(fwd_b_ctrl),
 		.is_load(is_load_id),
+		.reg_stall(reg_stall),
+		.fwd_m(), // FIXME
 		.unrecognized()
 	);
 

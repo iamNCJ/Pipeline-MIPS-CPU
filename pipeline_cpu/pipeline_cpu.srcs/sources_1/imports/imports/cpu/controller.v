@@ -30,6 +30,8 @@ module controller (/*AUTOARG*/
 	output reg [1:0] fwd_a,  // forwarding selection for channel A
 	output reg [1:0] fwd_b,  // forwarding selection for channel B
 	output reg is_load,  // whether current instruction is load instruction
+	output reg reg_stall,
+	output reg fwd_m,  // forwarding selection for memory
 	output reg unrecognized  // whether current instruction can not be recognized
 	);
 	
@@ -37,6 +39,7 @@ module controller (/*AUTOARG*/
 	
 	// instruction decode
 	reg rs_used, rt_used;
+	reg is_store;
 	
 	always @(*) begin
 		pc_src = PC_NEXT;
@@ -52,6 +55,7 @@ module controller (/*AUTOARG*/
 		rs_used = 0;
 		rt_used = 0;
 		is_load = 0;
+		is_store = 0;
 		unrecognized = 0;
 		case (inst[31:26])
 			INST_R: begin
@@ -180,6 +184,7 @@ module controller (/*AUTOARG*/
 				mem_wen = 1;
 				rs_used = 1;
 				rt_used = 1;
+				is_store = 1;
 			end
 			default: begin
 				unrecognized = 1;
@@ -195,27 +200,40 @@ module controller (/*AUTOARG*/
 		addr_rt = inst[20:16];
 	
 	always @(*) begin
+	    reg_stall = 1;
 		fwd_a = FWD_RS_RT;
 		fwd_b = FWD_RS_RT;
+		fwd_m = 0;
 		if (rs_used && addr_rs != 0) begin
 			if (regw_addr_exe == addr_rs && wb_wen_exe) begin
 				if (is_load_exe)
-					fwd_a = FWD_MEM_OUT;
+					reg_stall = 1;
 				else
 					fwd_a = FWD_ALU_OUT;
 			end
 			else if (regw_addr_mem == addr_rs && wb_wen_mem) begin
-				fwd_a = FWD_WB_DATA;
+			    if (is_load_mem)
+				    fwd_a = FWD_WB_DATA;
+				else
+				    fwd_a = 2;
 			end
 		end
 		if (rt_used && addr_rt != 0) begin
 			if (regw_addr_exe == addr_rt && wb_wen_exe) begin
-				if (is_load_exe)
-					fwd_b = FWD_MEM_OUT;
+				if (is_load_exe) begin
+					if (is_store)
+						fwd_m = 1;
+					else
+						reg_stall = 1;
+				end
 				else
-					fwd_b = FWD_ALU_OUT;
+					fwd_b = FWD_MEM_OUT;
 			end
 			else if (regw_addr_mem == addr_rt && wb_wen_mem) begin
+			    if (is_load_mem)
+			        fwd_b = 3;
+			    else
+			        fwd_b = 2;
 				fwd_b = FWD_WB_DATA;
 			end
 		end
