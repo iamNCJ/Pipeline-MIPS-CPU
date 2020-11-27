@@ -205,13 +205,13 @@ module controller (/*AUTOARG*/
 				if (is_load_exe)
 					reg_stall = 1;
 				else
-					fwd_a = 1;
+					fwd_a = FWD_ALU_EXE;
 			end
 			else if (regw_addr_mem == addr_rs && wb_wen_mem) begin
 			    if (is_load_mem)
-				    fwd_a = 3;
+				    fwd_a = FWD_MEM_OUT;
 				else
-				    fwd_a = 2;
+				    fwd_a = FWD_ALU_MEM;
 			end
 		end
 		if (rt_used && addr_rt != 0) begin
@@ -223,14 +223,13 @@ module controller (/*AUTOARG*/
 						reg_stall = 1;
 				end
 				else
-					fwd_b = 1;
+					fwd_b = FWD_ALU_EXE;
 			end
 			else if (regw_addr_mem == addr_rt && wb_wen_mem) begin
 			    if (is_load_mem)
-			        fwd_b = 3;
+			        fwd_b = FWD_MEM_OUT;
 			    else
-			        fwd_b = 2;
-				fwd_b = FWD_WB_DATA;
+			        fwd_b = FWD_ALU_MEM;
 			end
 		end
 	end

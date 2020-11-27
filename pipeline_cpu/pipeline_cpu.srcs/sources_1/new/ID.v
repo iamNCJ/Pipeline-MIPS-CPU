@@ -108,16 +108,16 @@ module ID(
 		data_rs_fwd = data_rs;
 		data_rt_fwd = data_rt;
 		case (fwd_a_ctrl)
-			0: data_rs_fwd = data_rs;
-			1: data_rs_fwd = alu_out_exe;
-			2: data_rs_fwd = alu_out_mem;
-			3: data_rs_fwd = mem_data_out;
+			FWD_RS_RT: data_rs_fwd = data_rs;
+			FWD_ALU_EXE: data_rs_fwd = alu_out_exe;
+			FWD_ALU_MEM: data_rs_fwd = alu_out_mem;
+			FWD_MEM_OUT: data_rs_fwd = mem_data_out;
 		endcase
 		case (fwd_b_ctrl)
-			0: data_rt_fwd = data_rt;
-			1: data_rt_fwd = alu_out_exe;
-			2: data_rt_fwd = alu_out_mem;
-			3: data_rt_fwd = mem_data_out;
+			FWD_RS_RT: data_rt_fwd = data_rt;
+			FWD_ALU_EXE: data_rt_fwd = alu_out_exe;
+			FWD_ALU_MEM: data_rt_fwd = alu_out_mem;
+			FWD_MEM_OUT: data_rt_fwd = mem_data_out;
 		endcase
 		rs_rt_equal = (data_rs_fwd == data_rt_fwd);
 	end

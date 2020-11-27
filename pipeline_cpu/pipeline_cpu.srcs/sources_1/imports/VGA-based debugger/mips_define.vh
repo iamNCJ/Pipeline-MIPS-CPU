@@ -46,9 +46,9 @@ localparam
 // Forwarding sources
 localparam
     FWD_RS_RT   = 0,
-    FWD_MEM_OUT = 1,
-    FWD_ALU_OUT = 2,
-    FWD_WB_DATA = 3;
+    FWD_ALU_EXE = 1,
+    FWD_ALU_MEM = 2,
+    FWD_MEM_OUT = 3;
 
 // variables
 localparam
