@@ -7,25 +7,18 @@ module MEM(
     input wire exe_valid,
     input wire [31:0] inst_addr,
     input wire [31:0] inst_data,
-    input wire [31:0] inst_addr_next,
     input wire [4:0] regw_addr,
-    input wire [31:0] data_rs,
-    input wire [31:0] data_rt,
     input wire [31:0] alu_out,
     input wire [31:0] data_rt_exe,
-    input wire mem_ren, // memory read enable signal // seems useless
     input wire mem_wen, // memory write enable signal
     input wire wb_data_src,
     input wire wb_wen,
-    input wire rs_rt_equal,
     input wire is_load_exe,
     input wire fwd_m_exe,  // forwarding selection for memory
     `ifdef DEBUG
     output wire [31:0] mem_data_write_out,
     output wire [31:0] mem_addr_out,
     `endif
-    output reg is_branch_mem,
-    output reg [31:0] branch_target_mem,
     output wire [31:0] mem_data_read_out,  // data read from memory
 	output reg wb_wen_mem,
 	output reg [31:0] alu_out_mem,
@@ -69,7 +62,6 @@ module MEM(
 			valid <= 0;
 			inst_addr_mem <= 0;
 			inst_data_mem <= 0;
-			inst_addr_next_mem <= 0;
 			regw_addr_mem <= 0;
 			data_rt_mem <= 0;
 			alu_out_mem <= 0;
@@ -77,7 +69,6 @@ module MEM(
 			wb_wen_mem <= 0;
 			fwd_m_mem <= 0;
 			is_load_mem <= 0;
-			rs_rt_equal_mem <= 0;
 		end
 		else if (en) begin
 			valid <= exe_valid;
@@ -90,7 +81,6 @@ module MEM(
 			wb_wen_mem <= wb_wen;
 			fwd_m_mem <= fwd_m_exe;
 			is_load_mem <= is_load_exe;
-			rs_rt_equal_mem <= rs_rt_equal;
 		end
 	end
 
