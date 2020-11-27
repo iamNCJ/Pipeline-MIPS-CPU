@@ -45,6 +45,7 @@ module mips_core (
     wire wb_data_src_mem;
 	wire [1:0] fwd_a_ctrl;  // forwarding selection for channel A
     wire [1:0] fwd_b_ctrl;  // forwarding selection for channel B
+    wire fwd_m_exe;
 
 	// debugger
 	`ifdef DEBUG
@@ -259,7 +260,7 @@ module mips_core (
         .wb_data_src_exe(wb_data_src_exe),
         .wb_wen_exe(wb_wen_exe),
         .is_load_exe(is_load_exe),
-        .fwd_m_exe(fwd_m_ctrl),
+        .fwd_m_exe(fwd_m_exe),
         .valid(exe_valid)
     );
     
@@ -276,7 +277,7 @@ module mips_core (
         .wb_data_src(wb_data_src_exe),
         .wb_wen(wb_wen_exe),
         .is_load_exe(is_load_exe),
-        .fwd_m_exe(fwd_m_ctrl),
+        .fwd_m_exe(fwd_m_exe),
         `ifdef DEBUG
         .mem_data_write_out(mem_data_write),
         .mem_addr_out(mem_addr_out),
