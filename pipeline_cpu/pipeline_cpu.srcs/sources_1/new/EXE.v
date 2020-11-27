@@ -7,8 +7,6 @@ module EXE(
     input wire id_valid,
     input wire [31:0] inst_addr_next,
     input wire [4:0] regw_addr_id,
-    input wire [31:0] data_rs,
-    input wire [31:0] data_rt,
     input wire [31:0] data_imm,
     // 8 signals from controller in ID
     input wire [1:0] exe_a_src,
@@ -21,9 +19,6 @@ module EXE(
     input wire [31:0] inst_data,
     input wire [31:0] inst_addr,
     input wire is_load_ctrl,  // whether current instruction is load instruction
-    input wire [31:0] mem_data_out,
-    input wire [31:0] alu_out_mem,
-    input wire [31:0] regw_data_wb,
     input wire [31:0] data_rs_fwd,
     input wire [31:0] data_rt_fwd,
     input wire fwd_m_ctrl,  // forwarding selection for memory
@@ -42,8 +37,6 @@ module EXE(
     output reg mem_wen_exe,
     output reg wb_data_src_exe,
     output reg wb_wen_exe,
-    output wire rs_rt_equal_exe,
-    output reg is_branch_exe,
     output reg is_load_exe,  // whether instruction in EXE stage is load instruction
     output reg fwd_m_exe,
     output reg valid

@@ -37,7 +37,7 @@ module ID(
     output wire [31:0] data_rs, 
     output wire [31:0] data_rt, 
     output wire [31:0] data_imm,
-    output wire [2:0] pc_src,  // how would PC change to next
+    output wire [1:0] pc_src,  // how would PC change to next
     output wire [1:0] exe_a_src,  // data source of operand A for ALU
 	output wire [1:0] exe_b_src,  // data source of operand B for ALU
 	output wire [3:0] exe_alu_oper,  // ALU operation type
@@ -46,11 +46,9 @@ module ID(
 	output wire wb_data_src,  // data source of data being written back to registers
 	output wire wb_wen,  // register write enable signal
 	output wire reg_stall,
-	output wire branch_stall,
 	output wire [1:0] fwd_a_ctrl,
 	output wire [1:0] fwd_b_ctrl,
 	output wire is_load_id,
-	output reg rs_rt_equal,  // whether data from RS and RT are equal
 	output reg fwd_m_ctrl,
 	output reg valid  // working flag
     );
@@ -62,6 +60,7 @@ module ID(
     wire [4:0] addr_rs, addr_rt, addr_rd;
 
     reg [31:0] inst_data_id;  // instruction fetched
+    reg rs_rt_equal;  // whether data from RS and RT are equal
     assign inst_data_out = inst_data_id;
 
     `ifdef DEBUG
@@ -150,8 +149,8 @@ module ID(
 		.is_load_mem(is_load_mem),
 		.regw_addr_mem(regw_addr_mem),
 		.wb_wen_mem(wb_wen_mem),
-		.pc_src(pc_src), // FIXME
-		.rs_rt_equal(), // FIXME 
+		.pc_src(pc_src),
+		.rs_rt_equal(rs_rt_equal),
 		.imm_ext(imm_ext),
 		.exe_a_src(exe_a_src),
 		.exe_b_src(exe_b_src),
