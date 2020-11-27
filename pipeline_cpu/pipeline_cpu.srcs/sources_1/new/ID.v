@@ -12,7 +12,6 @@ module ID(
 	input wire [4:0] regw_addr_wb,
 	input wire [31:0] regw_data_wb,
     input wire [31:0] inst_addr,
-	input wire is_branch_exe,  // whether instruction in EXE stage is jump/branch instruction
 	input wire [4:0] regw_addr_exe,  // register write address from EXE stage
 	input wire wb_wen_exe,  // register write enable signal feedback from EXE stage
 	input wire is_branch_mem,  // whether instruction in MEM stage is jump/branch instruction
@@ -34,8 +33,8 @@ module ID(
 	output wire [31:0] inst_data_out,
 	output reg [4:0] regw_addr,
 	output reg 	[31:0] inst_addr_next_out,
-    output wire [31:0] data_rs, 
-    output wire [31:0] data_rt, 
+    output reg [31:0] data_rs_fwd,
+    output reg [31:0] data_rt_fwd,
     output wire [31:0] data_imm,
     output wire [1:0] pc_src,  // how would PC change to next
     output wire [1:0] exe_a_src,  // data source of operand A for ALU
@@ -102,7 +101,7 @@ module ID(
 		endcase
 	end
 	
-	reg [31:0] data_rs_fwd, data_rt_fwd;
+	reg [31:0] data_rs, data_rt;
 	
 	always @(*) begin
 		data_rs_fwd = data_rs;
