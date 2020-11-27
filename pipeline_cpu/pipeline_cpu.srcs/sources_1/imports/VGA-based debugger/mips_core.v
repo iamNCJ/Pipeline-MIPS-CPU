@@ -22,7 +22,7 @@ module mips_core (
 	wire [4:0] regw_addr, regw_addr_exe;
     wire [31:0] inst_addr_next, inst_addr_next_id, inst_addr_next_exe;
     wire [31:0] data_rs, data_rt, data_imm;
-    wire [2:0] pc_src;  // how would PC change to next
+    wire [1:0] pc_src;  // how would PC change to next
     wire [1:0] exe_a_src;  // data source of operand A for ALU
     wire [1:0] exe_b_src;  // data source of operand B for ALU
     wire [3:0] exe_alu_oper;  // ALU operation type
@@ -30,7 +30,7 @@ module mips_core (
     wire mem_wen, mem_wen_exe;  // memory write enable signal
     wire wb_data_src;  // data source of data being written back to registers
     wire wb_wen;  // register write enable signal
-    wire [2:0] pc_src_exe;
+    wire [1:0] pc_src_exe;
     wire [31:0] alu_out_exe;
     wire [31:0] inst_addr, inst_addr_id, inst_addr_exe, inst_addr_mem;
     wire [31:0] inst_data, inst_data_id, inst_data_exe, inst_data_mem;
@@ -107,6 +107,7 @@ module mips_core (
 	wire wb_wen_mem;  // register write enable signal feedback from MEM stage
 	reg reg_rst; // reset regfile
     wire is_load_ctrl;
+    wire fwd_m_ctrl;
 	
 	always @(*) begin
 		if_rst = 0;
@@ -154,12 +155,12 @@ module mips_core (
 	   .clk(clk),
 	   .rst(if_rst),
 	   .en(if_en),
-	   .pc_src_ctrl(), // FIXME
-	   .inst_addr_id(), // FIXME
-	   .inst_data_id(), // FIXME
-	   .data_rs_fwd(), // FIXME
-	   .inst_addr_next_id(), // FIXME
-	   .data_imm(), // FIXME
+	   .pc_src_ctrl(pc_src),
+	   .inst_addr_id(inst_addr_id),
+	   .inst_data_id(inst_data_id),
+	   .data_rs_fwd(data_rs),
+	   .inst_addr_next_id(inst_addr_next_id),
+	   .data_imm(data_imm),
 	   `ifdef DEBUG
 	   .inst_ren(inst_ren),
 	   `endif
@@ -183,7 +184,6 @@ module mips_core (
         .inst_addr(inst_addr),
         .inst_addr_out(inst_addr_id),
         .inst_data_out(inst_data_id),
-        .is_branch_exe(is_branch_exe),
 		.regw_addr_exe(regw_addr_exe),
 		.wb_wen_exe(wb_wen_exe),
 		.is_branch_mem(is_branch_mem),
@@ -191,9 +191,9 @@ module mips_core (
 		.wb_wen_mem(wb_wen_mem),
 		.is_load_exe(is_load_exe),
 		.is_load_mem(is_load_mem),
-		.mem_data_out(), // FIXME
-		.alu_out_exe(), // FIXME
-		.alu_out_mem(), // FIXME
+		.mem_data_out(mem_data_read),
+		.alu_out_exe(alu_out_exe),
+		.alu_out_mem(alu_out_mem),
         `ifdef DEBUG
         .debug_addr(debug_addr),
         .debug_data_reg(debug_data_reg),
@@ -201,8 +201,6 @@ module mips_core (
         .addr_rt_out(addr_rt),
         .addr_rd_out(addr_rd),
         `endif
-        .inst_addr_out(), // FIXME
-        .inst_data_out(), // FIXME
         .regw_addr(regw_addr),
         .inst_addr_next_out(inst_addr_next_id),
         .data_rs_fwd(data_rs),
@@ -217,11 +215,10 @@ module mips_core (
         .wb_data_src(wb_data_src),  // data source of data being written back to registers
         .wb_wen(wb_wen),  // register write enable signal
         .reg_stall(reg_stall),
-        .branch_stall(branch_stall),
         .fwd_a_ctrl(fwd_a_ctrl),
         .fwd_b_ctrl(fwd_b_ctrl),
         .is_load_id(is_load_ctrl),
-        .fwd_m_ctrl(), // FIXME
+        .fwd_m_ctrl(fwd_m_ctrl),
         .valid(id_valid)  // working flag
     );
 
@@ -245,7 +242,7 @@ module mips_core (
         .is_load_ctrl(is_load_ctrl),
         .data_rs_fwd(data_rs),
         .data_rt_fwd(data_rt),
-        .fwd_m_ctrl(), // FIXME
+        .fwd_m_ctrl(fwd_m_ctrl),
         .inst_addr_out(inst_addr_exe),
         .inst_data_out(inst_data_exe),
         `ifdef DEBUG
@@ -262,7 +259,7 @@ module mips_core (
         .wb_data_src_exe(wb_data_src_exe),
         .wb_wen_exe(wb_wen_exe),
         .is_load_exe(is_load_exe),
-        .fwd_m_exe(), // FIXME
+        .fwd_m_exe(fwd_m_ctrl),
         .valid(exe_valid)
     );
     
@@ -271,26 +268,19 @@ module mips_core (
         .en(mem_en),
         .rst(mem_rst),
         .exe_valid(exe_valid),
-        .pc_src(pc_src_exe),
         .inst_addr(inst_addr_exe),
         .inst_data(inst_data_exe),
-        .inst_addr_next(inst_addr_next_exe),
         .regw_addr(regw_addr_exe),
-        .data_rs(data_rs_exe),
-        .data_rt(data_rt_exe),
-        .alu_out(alu_out_exe),
-        .mem_ren(mem_ren_exe),
+        .data_rt_exe(data_rt_exe),
         .mem_wen(mem_wen_exe),
         .wb_data_src(wb_data_src_exe),
         .wb_wen(wb_wen_exe),
-        .rs_rt_equal(rs_rt_equal_exe),
         .is_load_exe(is_load_exe),
+        .fwd_m_exe(fwd_m_ctrl),
         `ifdef DEBUG
         .mem_data_write_out(mem_data_write),
         .mem_addr_out(mem_addr_out),
         `endif
-        .is_branch_mem(is_branch_mem),
-        .branch_target_mem(branch_target_mem),
         .mem_data_read_out(mem_data_read),
         .wb_wen_mem(wb_wen_mem),
         .alu_out_mem(alu_out_mem),

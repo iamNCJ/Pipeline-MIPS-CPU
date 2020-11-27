@@ -48,7 +48,7 @@ module ID(
 	output wire [1:0] fwd_a_ctrl,
 	output wire [1:0] fwd_b_ctrl,
 	output wire is_load_id,
-	output reg fwd_m_ctrl,
+	output wire fwd_m_ctrl,
 	output reg valid  // working flag
     );
     
@@ -101,7 +101,7 @@ module ID(
 		endcase
 	end
 	
-	reg [31:0] data_rs, data_rt;
+	wire [31:0] data_rs, data_rt;
 	
 	always @(*) begin
 		data_rs_fwd = data_rs;
