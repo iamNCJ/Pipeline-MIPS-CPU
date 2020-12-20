@@ -216,6 +216,7 @@ module mips_core (
         .wb_data_src(wb_data_src),  // data source of data being written back to registers
         .wb_wen(wb_wen),  // register write enable signal
         .reg_stall(reg_stall),
+        .branch_stall(branch_stall),
         .fwd_a_ctrl(fwd_a_ctrl),
         .fwd_b_ctrl(fwd_b_ctrl),
         .is_load_id(is_load_ctrl),

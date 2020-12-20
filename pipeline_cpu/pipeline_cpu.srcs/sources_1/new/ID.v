@@ -45,6 +45,7 @@ module ID(
 	output wire wb_data_src,  // data source of data being written back to registers
 	output wire wb_wen,  // register write enable signal
 	output wire reg_stall,
+	output wire branch_stall,
 	output wire [1:0] fwd_a_ctrl,
 	output wire [1:0] fwd_b_ctrl,
 	output wire is_load_id,
@@ -163,6 +164,7 @@ module ID(
 		.fwd_b(fwd_b_ctrl),
 		.is_load(is_load_id),
 		.reg_stall(reg_stall),
+		.branch_stall(branch_stall),
 		.fwd_m(fwd_m_ctrl),
 		.unrecognized()
 	);

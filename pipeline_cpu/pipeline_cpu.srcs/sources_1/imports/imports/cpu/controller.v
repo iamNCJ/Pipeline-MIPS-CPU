@@ -29,6 +29,7 @@ module controller (/*AUTOARG*/
 	output reg [1:0] fwd_b,  // forwarding selection for channel B
 	output reg is_load,  // whether current instruction is load instruction
 	output reg reg_stall,
+	output reg branch_stall,
 	output reg fwd_m,  // forwarding selection for memory
 	output reg unrecognized  // whether current instruction can not be recognized
 	);
@@ -194,6 +195,8 @@ module controller (/*AUTOARG*/
 	assign
 		addr_rs = inst[25:21],
 		addr_rt = inst[20:16];
+		
+	always @(*)	branch_stall = (pc_src != PC_NEXT);
 	
 	always @(*) begin
 	    reg_stall = 0;
