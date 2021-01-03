@@ -146,7 +146,7 @@ module mips_core (
 			id_en = 0;
 			exe_rst = 1;
 		end
-		// this stall indicate that a jump/branch instruction is running, so that 3 NOP should be inserted between IF and ID
+		// flush when wrong predicted
 		else if (branch_stall) begin
 			id_rst = 1;
 		end
